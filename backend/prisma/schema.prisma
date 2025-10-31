@@ -1,0 +1,237 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  birthDate DateTime @map("birth_date")
+  gender    String
+  bloodType String?  @map("blood_type")
+  height    Float?
+  weight    Float?
+  
+  // Lifestyle habits stored as JSON
+  lifestyleHabits Json? @map("lifestyle_habits")
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  healthRecords  HealthRecord[]
+  medicalRecords MedicalRecord[]
+  medications    Medication[]
+  genomicData    GenomicData[]
+  familyHistory  FamilyHistory[]
+  documents      Document[]
+  predictions    Prediction[]
+  
+  @@map("users")
+}
+
+model HealthRecord {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  recordType   String   @map("record_type")
+  data         Json
+  recordedDate DateTime @map("recorded_date")
+  createdAt    DateTime @default(now()) @map("created_at")
+  
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vitalSigns VitalSign[]
+  
+  @@map("health_records")
+}
+
+model VitalSign {
+  id              String   @id @default(cuid())
+  healthRecordId  String   @map("health_record_id")
+  type            String
+  value           Json
+  unit            String
+  measuredAt      DateTime @map("measured_at")
+  
+  healthRecord HealthRecord @relation(fields: [healthRecordId], references: [id], onDelete: Cascade)
+  
+  @@map("vital_signs")
+}
+
+model MedicalRecord {
+  id                   String   @id @default(cuid())
+  userId               String   @map("user_id")
+  hospitalName         String   @map("hospital_name")
+  department           String
+  doctorName           String   @map("doctor_name")
+  diagnosisCode        String?  @map("diagnosis_code")
+  diagnosisDescription String?  @map("diagnosis_description")
+  doctorNotes          String?  @map("doctor_notes")
+  cost                 Float?
+  visitDate            DateTime @map("visit_date")
+  createdAt            DateTime @default(now()) @map("created_at")
+  
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  testResults  TestResult[]
+  prescriptions Prescription[]
+  
+  @@map("medical_records")
+}
+
+model TestResult {
+  id              String   @id @default(cuid())
+  medicalRecordId String   @map("medical_record_id")
+  testType        String   @map("test_type")
+  testName        String   @map("test_name")
+  results         Json
+  referenceRange  String?  @map("reference_range")
+  status          String?
+  testDate        DateTime @map("test_date")
+  
+  medicalRecord MedicalRecord @relation(fields: [medicalRecordId], references: [id], onDelete: Cascade)
+  
+  @@map("test_results")
+}
+
+model Prescription {
+  id              String   @id @default(cuid())
+  medicalRecordId String   @map("medical_record_id")
+  medicationName  String   @map("medication_name")
+  dosage          String
+  frequency       String
+  duration        String?
+  instructions    String?
+  
+  medicalRecord MedicalRecord @relation(fields: [medicalRecordId], references: [id], onDelete: Cascade)
+  
+  @@map("prescriptions")
+}
+
+model Medication {
+  id         String    @id @default(cuid())
+  userId     String    @map("user_id")
+  name       String
+  dosage     String
+  frequency  String
+  route      String?
+  startDate  DateTime  @map("start_date")
+  endDate    DateTime? @map("end_date")
+  isActive   Boolean   @default(true) @map("is_active")
+  sideEffects Json?    @map("side_effects")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dosageLogs DosageLog[]
+  
+  @@map("medications")
+}
+
+model DosageLog {
+  id           String   @id @default(cuid())
+  medicationId String   @map("medication_id")
+  takenAt      DateTime @map("taken_at")
+  dosageTaken  String   @map("dosage_taken")
+  notes        String?
+  
+  medication Medication @relation(fields: [medicationId], references: [id], onDelete: Cascade)
+  
+  @@map("dosage_logs")
+}
+
+model GenomicData {
+  id               String   @id @default(cuid())
+  userId           String   @map("user_id")
+  sourcePlatform   String   @map("source_platform")
+  filePath         String?  @map("file_path")
+  snpData          Json?    @map("snp_data")
+  analysisResults  Json?    @map("analysis_results")
+  uploadedAt       DateTime @default(now()) @map("uploaded_at")
+  
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  riskAssessments RiskAssessment[]
+  
+  @@map("genomic_data")
+}
+
+model RiskAssessment {
+  id                 String   @id @default(cuid())
+  userId             String   @map("user_id")
+  genomicDataId      String?  @map("genomic_data_id")
+  diseaseType        String   @map("disease_type")
+  riskScore          Float    @map("risk_score")
+  percentile         Float?
+  contributingFactors Json?   @map("contributing_factors")
+  calculatedAt       DateTime @default(now()) @map("calculated_at")
+  
+  genomicData GenomicData? @relation(fields: [genomicDataId], references: [id], onDelete: SetNull)
+  
+  @@map("risk_assessments")
+}
+
+model FamilyHistory {
+  id           String  @id @default(cuid())
+  userId       String  @map("user_id")
+  relationship String
+  name         String?
+  conditions   Json?
+  ageAtDeath   Int?    @map("age_at_death")
+  causeOfDeath String? @map("cause_of_death")
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("family_history")
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  fileName    String   @map("file_name")
+  filePath    String   @map("file_path")
+  fileType    String   @map("file_type")
+  category    String?
+  ocrText     String?  @map("ocr_text")
+  metadata    Json?
+  uploadedAt  DateTime @default(now()) @map("uploaded_at")
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("documents")
+}
+
+model AIModel {
+  id          String   @id @default(cuid())
+  name        String
+  version     String
+  modelType   String   @map("model_type")
+  parameters  Json?
+  accuracy    Float?
+  trainedAt   DateTime @map("trained_at")
+  
+  predictions Prediction[]
+  
+  @@map("ai_models")
+}
+
+model Prediction {
+  id               String   @id @default(cuid())
+  userId           String   @map("user_id")
+  aiModelId        String   @map("ai_model_id")
+  predictionType   String   @map("prediction_type")
+  inputData        Json     @map("input_data")
+  predictionResult Json     @map("prediction_result")
+  confidenceScore  Float?   @map("confidence_score")
+  createdAt        DateTime @default(now()) @map("created_at")
+  
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  aiModel AIModel @relation(fields: [aiModelId], references: [id], onDelete: Cascade)
+  
+  @@map("predictions")
+}
