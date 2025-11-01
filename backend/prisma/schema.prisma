@@ -28,13 +28,15 @@ model User {
   updatedAt DateTime @updatedAt @map("updated_at")
   
   // Relations
-  healthRecords  HealthRecord[]
-  medicalRecords MedicalRecord[]
-  medications    Medication[]
-  genomicData    GenomicData[]
-  familyHistory  FamilyHistory[]
-  documents      Document[]
-  predictions    Prediction[]
+  healthRecords        HealthRecord[]
+  medicalRecords       MedicalRecord[]
+  medications          Medication[]
+  genomicData          GenomicData[]
+  familyHistory        FamilyHistory[]
+  familyRiskAssessments FamilyRiskAssessment[]
+  documents            Document[]
+  predictions          Prediction[]
+  appointments         Appointment[]
   
   @@map("users")
 }
@@ -89,15 +91,23 @@ model MedicalRecord {
 model TestResult {
   id              String   @id @default(cuid())
   medicalRecordId String   @map("medical_record_id")
-  testType        String   @map("test_type")
+  testCategory    String   @map("test_category") // blood, urine, imaging, etc.
+  testSubcategory String?  @map("test_subcategory") // cbc, liver_function, etc.
   testName        String   @map("test_name")
-  results         Json
-  referenceRange  String?  @map("reference_range")
-  status          String?
+  testItems       Json     @map("test_items") // Array of TestItem objects
+  overallStatus   String   @map("overall_status") // normal, abnormal, critical, etc.
   testDate        DateTime @map("test_date")
+  laboratoryName  String?  @map("laboratory_name")
+  doctorNotes     String?  @map("doctor_notes")
+  imageFiles      Json?    @map("image_files") // Array of file paths for imaging tests
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
   
   medicalRecord MedicalRecord @relation(fields: [medicalRecordId], references: [id], onDelete: Cascade)
   
+  @@index([testCategory, testDate])
+  @@index([testName, testDate])
+  @@index([overallStatus])
   @@map("test_results")
 }
 
@@ -116,20 +126,27 @@ model Prescription {
 }
 
 model Medication {
-  id         String    @id @default(cuid())
-  userId     String    @map("user_id")
-  name       String
-  dosage     String
-  frequency  String
-  route      String?
-  startDate  DateTime  @map("start_date")
-  endDate    DateTime? @map("end_date")
-  isActive   Boolean   @default(true) @map("is_active")
-  sideEffects Json?    @map("side_effects")
-  createdAt  DateTime  @default(now()) @map("created_at")
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  name        String
+  genericName String?   @map("generic_name")
+  dosage      String
+  frequency   String
+  route       String?   // oral, injection, topical, etc.
+  startDate   DateTime  @map("start_date")
+  endDate     DateTime? @map("end_date")
+  isActive    Boolean   @default(true) @map("is_active")
+  purpose     String?   // indication for use
+  prescribedBy String?  @map("prescribed_by")
+  pharmacy    String?
+  notes       String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
   
-  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  dosageLogs DosageLog[]
+  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dosageLogs         DosageLog[]
+  sideEffects        SideEffect[]
+  medicationSchedules MedicationSchedule[]
   
   @@map("medications")
 }
@@ -144,6 +161,56 @@ model DosageLog {
   medication Medication @relation(fields: [medicationId], references: [id], onDelete: Cascade)
   
   @@map("dosage_logs")
+}
+
+model SideEffect {
+  id           String   @id @default(cuid())
+  medicationId String   @map("medication_id")
+  effectName   String   @map("effect_name")
+  severity     String   // mild, moderate, severe
+  description  String?
+  startDate    DateTime @map("start_date")
+  endDate      DateTime? @map("end_date")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  
+  medication Medication @relation(fields: [medicationId], references: [id], onDelete: Cascade)
+  
+  @@map("side_effects")
+}
+
+model DrugInteraction {
+  id                String   @id @default(cuid())
+  drug1Name         String   @map("drug1_name")
+  drug2Name         String   @map("drug2_name")
+  interactionType   String   @map("interaction_type") // major, moderate, minor
+  severity          String   // contraindicated, serious, significant, minor
+  description       String
+  clinicalEffect    String?  @map("clinical_effect")
+  mechanism         String?
+  management        String?
+  isActive          Boolean  @default(true) @map("is_active")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  
+  @@index([drug1Name, drug2Name])
+  @@index([interactionType])
+  @@map("drug_interactions")
+}
+
+model MedicationSchedule {
+  id           String   @id @default(cuid())
+  medicationId String   @map("medication_id")
+  timeOfDay    String   @map("time_of_day") // morning, afternoon, evening, night
+  scheduledTime String  @map("scheduled_time") // HH:MM format
+  dosage       String
+  instructions String?
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  
+  medication Medication @relation(fields: [medicationId], references: [id], onDelete: Cascade)
+  
+  @@map("medication_schedules")
 }
 
 model GenomicData {
@@ -179,15 +246,71 @@ model RiskAssessment {
 model FamilyHistory {
   id           String  @id @default(cuid())
   userId       String  @map("user_id")
-  relationship String
+  relationship String  // father, mother, sibling, child, grandparent, etc.
   name         String?
-  conditions   Json?
-  ageAtDeath   Int?    @map("age_at_death")
+  gender       String? // male, female, unknown
+  birthYear    Int?    @map("birth_year")
+  deathYear    Int?    @map("death_year")
+  isAlive      Boolean @default(true) @map("is_alive")
+  
+  // Family tree positioning
+  generation   Int     @default(0) // 0 = user, -1 = parents, -2 = grandparents, +1 = children
+  position     Int     @default(0) // position within generation for layout
+  parentId     String? @map("parent_id") // reference to parent in family tree
+  
+  // Medical information
+  conditions   Json?   // array of medical conditions
   causeOfDeath String? @map("cause_of_death")
+  
+  // Metadata
+  notes        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
   
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   
+  // Self-referencing relationship for family tree structure
+  parent   FamilyHistory?  @relation("FamilyTreeRelation", fields: [parentId], references: [id])
+  children FamilyHistory[] @relation("FamilyTreeRelation")
+  
   @@map("family_history")
+}
+
+model GeneticCondition {
+  id                String   @id @default(cuid())
+  name              String   @unique
+  icd10Code         String?  @map("icd10_code")
+  category          String   // cardiovascular, cancer, neurological, metabolic, etc.
+  inheritancePattern String? @map("inheritance_pattern") // autosomal_dominant, autosomal_recessive, x_linked, etc.
+  prevalence        Float?   // population prevalence (0-1)
+  penetrance        Float?   // genetic penetrance (0-1)
+  description       String?
+  riskFactors       Json?    @map("risk_factors") // array of risk factors
+  symptoms          Json?    // array of symptoms
+  isHereditary      Boolean  @default(false) @map("is_hereditary")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  
+  @@index([category])
+  @@index([isHereditary])
+  @@map("genetic_conditions")
+}
+
+model FamilyRiskAssessment {
+  id                String   @id @default(cuid())
+  userId            String   @map("user_id")
+  conditionName     String   @map("condition_name")
+  familyRiskScore   Float    @map("family_risk_score") // 0-1 scale
+  affectedRelatives Int      @map("affected_relatives") // count of affected family members
+  riskLevel         String   @map("risk_level") // low, moderate, high, very_high
+  recommendations   Json?    // array of recommendations
+  calculatedAt      DateTime @default(now()) @map("calculated_at")
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, conditionName])
+  @@index([riskLevel])
+  @@map("family_risk_assessments")
 }
 
 model Document {
@@ -234,4 +357,76 @@ model Prediction {
   aiModel AIModel @relation(fields: [aiModelId], references: [id], onDelete: Cascade)
   
   @@map("predictions")
+}
+
+model ReferenceRange {
+  id           String   @id @default(cuid())
+  testName     String   @map("test_name")
+  testCategory String   @map("test_category")
+  unit         String?
+  ageMin       Int?     @map("age_min")
+  ageMax       Int?     @map("age_max")
+  gender       String?  // 'male', 'female', 'all'
+  minValue     Float?   @map("min_value")
+  maxValue     Float?   @map("max_value")
+  textRange    String?  @map("text_range") // For non-numeric ranges like "negative"
+  source       String?  // Reference institution
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  
+  @@index([testName, testCategory])
+  @@index([testCategory])
+  @@map("reference_ranges")
+}
+
+model Appointment {
+  id                String   @id @default(cuid())
+  userId            String   @map("user_id")
+  hospitalName      String   @map("hospital_name")
+  department        String
+  doctorName        String?  @map("doctor_name")
+  appointmentType   String   @map("appointment_type") // consultation, follow_up, procedure, test
+  purpose           String?  // reason for appointment
+  appointmentDate   DateTime @map("appointment_date")
+  duration          Int?     // duration in minutes
+  status            String   @default("scheduled") // scheduled, confirmed, completed, cancelled, no_show
+  location          String?  // room number, building, etc.
+  notes             String?
+  
+  // Contact information
+  hospitalPhone     String?  @map("hospital_phone")
+  hospitalAddress   String?  @map("hospital_address")
+  
+  // Reminder settings
+  reminderSettings  Json?    @map("reminder_settings") // notification preferences
+  
+  // Metadata
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notifications     AppointmentNotification[]
+  
+  @@index([userId, appointmentDate])
+  @@index([status])
+  @@index([department])
+  @@map("appointments")
+}
+
+model AppointmentNotification {
+  id            String   @id @default(cuid())
+  appointmentId String   @map("appointment_id")
+  notificationType String @map("notification_type") // email, sms, push, in_app
+  scheduledTime DateTime @map("scheduled_time") // when to send the notification
+  message       String?
+  status        String   @default("pending") // pending, sent, failed
+  sentAt        DateTime? @map("sent_at")
+  errorMessage  String?  @map("error_message")
+  createdAt     DateTime @default(now()) @map("created_at")
+  
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  
+  @@index([scheduledTime, status])
+  @@map("appointment_notifications")
 }

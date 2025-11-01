@@ -78,6 +78,38 @@ const Sidebar = () => {
       ]
     },
     {
+      id: 'appointments',
+      label: '병원 예약',
+      path: '/appointments',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z" stroke="currentColor" strokeWidth="2" fill="none"/>
+          <path d="M16 2V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          <path d="M8 2V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          <path d="M3 10H21" stroke="currentColor" strokeWidth="2"/>
+          <path d="M8 14H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          <path d="M8 18H12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+      ),
+      badge: null
+    },
+    {
+      id: 'family-history',
+      label: '가족력 관리',
+      path: '/family-history',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M16 4C16 6.20914 14.2091 8 12 8C9.79086 8 8 6.20914 8 4C8 1.79086 9.79086 0 12 0C14.2091 0 16 1.79086 16 4Z" fill="currentColor"/>
+          <path d="M12 10C8.68629 10 6 12.6863 6 16V18H18V16C18 12.6863 15.3137 10 12 10Z" fill="currentColor"/>
+          <path d="M6 4C6 5.10457 5.10457 6 4 6C2.89543 6 2 5.10457 2 4C2 2.89543 2.89543 2 4 2C5.10457 2 6 2.89543 6 4Z" fill="currentColor"/>
+          <path d="M22 4C22 5.10457 21.1046 6 20 6C18.8954 6 18 5.10457 18 4C18 2.89543 18.8954 2 20 2C21.1046 2 22 2.89543 22 4Z" fill="currentColor"/>
+          <path d="M4 8C2.34315 8 1 9.34315 1 11V12H7V11C7 9.34315 5.65685 8 4 8Z" fill="currentColor"/>
+          <path d="M20 8C21.6569 8 23 9.34315 23 11V12H17V11C17 9.34315 18.3431 8 20 8Z" fill="currentColor"/>
+        </svg>
+      ),
+      badge: null
+    },
+    {
       id: 'genomics',
       label: '유전체 분석',
       path: '/genomics',
@@ -92,8 +124,7 @@ const Sidebar = () => {
       submenu: [
         { label: '유전자 데이터', path: '/genomics/data' },
         { label: '질병 위험도', path: '/genomics/risk' },
-        { label: '약물 반응성', path: '/genomics/pharmacogenomics' },
-        { label: '가족력', path: '/genomics/family-history' }
+        { label: '약물 반응성', path: '/genomics/pharmacogenomics' }
       ]
     },
     {

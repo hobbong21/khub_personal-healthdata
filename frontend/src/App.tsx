@@ -7,10 +7,17 @@ import Dashboard from './pages/Dashboard'
 import AuthPage from './pages/AuthPage'
 import HealthPage from './pages/HealthPage'
 import ProfilePage from './pages/ProfilePage'
+import { MedicationPage } from './pages/MedicationPage'
+import FamilyHistoryPage from './pages/FamilyHistoryPage'
+import { AppointmentsPage } from './pages/AppointmentsPage'
 import './App.css'
 import './styles/auth.css'
 import './styles/profile.css'
 import './styles/health.css'
+import './styles/dashboard.css'
+import './styles/medication.css'
+import './styles/familyHistory.css'
+import './styles/appointment.css'
 
 const queryClient = new QueryClient()
 
@@ -75,6 +82,30 @@ function AppLayout() {
               element={
                 <ProtectedRoute>
                   <ProfilePage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/medication" 
+              element={
+                <ProtectedRoute>
+                  <MedicationPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/family-history" 
+              element={
+                <ProtectedRoute>
+                  <FamilyHistoryPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/appointments" 
+              element={
+                <ProtectedRoute>
+                  <AppointmentsPage />
                 </ProtectedRoute>
               } 
             />

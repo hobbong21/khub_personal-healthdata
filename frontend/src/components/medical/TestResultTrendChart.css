@@ -1,0 +1,362 @@
+/* 검사 결과 트렌드 차트 스타일 (요구사항 8.4, 8.5) */
+
+.trend-chart-container {
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 12px;
+}
+
+/* 트렌드 탭 */
+.trend-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.trend-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  background: #ffffff;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  min-width: fit-content;
+}
+
+.trend-tab:hover {
+  border-color: #3b82f6;
+  transform: translateY(-1px);
+}
+
+.trend-tab.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #ffffff;
+}
+
+.trend-icon {
+  font-size: 18px;
+}
+
+.trend-name {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.trend-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.trend-indicator.improving {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.trend-indicator.worsening {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+.trend-indicator.stable {
+  background: rgba(107, 114, 128, 0.1);
+  color: #4b5563;
+}
+
+.trend-indicator.fluctuating {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+}
+
+.trend-percentage {
+  font-weight: 700;
+}
+
+/* 트렌드 컨텐츠 */
+.trend-chart-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* 트렌드 정보 */
+.trend-info {
+  background: #f9fafb;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.trend-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.trend-header h3 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.trend-badges {
+  display: flex;
+  gap: 8px;
+}
+
+.trend-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.trend-badge.improving {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.trend-badge.worsening {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.trend-badge.stable {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.trend-badge.fluctuating {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.unit-badge {
+  padding: 4px 8px;
+  background: #e5e7eb;
+  color: #374151;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* 전년도 대비 변화 */
+.year-comparison {
+  margin-top: 16px;
+}
+
+.year-comparison h4 {
+  margin: 0 0 12px 0;
+  color: #374151;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.comparison-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  align-items: center;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.stat-value.positive {
+  color: #059669;
+}
+
+.stat-value.negative {
+  color: #dc2626;
+}
+
+.significance-badge {
+  padding: 4px 8px;
+  background: #fef3c7;
+  color: #d97706;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* 차트 컨테이너 */
+.chart-container {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+/* 커스텀 툴팁 */
+.trend-tooltip {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.tooltip-date {
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 8px 0;
+}
+
+.tooltip-value,
+.tooltip-status,
+.tooltip-reference {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.tooltip-label {
+  color: #6b7280;
+  margin-right: 8px;
+}
+
+.tooltip-number {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.status-badge {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-badge.normal {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.status-badge.abnormal {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.status-badge.critical {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.status-badge.borderline {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+.status-badge.pending {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+/* 데이터 요약 */
+.data-summary {
+  background: #f9fafb;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.summary-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summary-label {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.summary-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* 빈 상태 */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6b7280;
+}
+
+.empty-state p {
+  margin: 8px 0;
+  font-size: 16px;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .trend-chart-container {
+    padding: 16px;
+  }
+
+  .trend-tabs {
+    flex-direction: column;
+  }
+
+  .trend-tab {
+    justify-content: center;
+  }
+
+  .trend-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .comparison-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-container {
+    padding: 12px;
+  }
+}

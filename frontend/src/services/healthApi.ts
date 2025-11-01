@@ -165,6 +165,44 @@ class HealthApiService {
 
     throw new Error('건강 데이터 요약 조회에 실패했습니다');
   }
+
+  // 대시보드 종합 데이터 조회 (요구사항 4.1, 4.2, 4.3)
+  async getDashboardData(): Promise<any> {
+    const response = await this.request<any>('/health/dashboard');
+    
+    if (response.data) {
+      return response.data;
+    }
+
+    throw new Error('대시보드 데이터 조회에 실패했습니다');
+  }
+
+  // 건강 지표 트렌드 분석 (요구사항 4.1, 4.2)
+  async getHealthTrends(period: string = 'monthly', days: number = 30): Promise<any> {
+    const params = new URLSearchParams({
+      period,
+      days: days.toString()
+    });
+
+    const response = await this.request<any>(`/health/dashboard/trends?${params.toString()}`);
+    
+    if (response.data) {
+      return response.data;
+    }
+
+    throw new Error('건강 지표 트렌드 분석에 실패했습니다');
+  }
+
+  // 목표 달성률 조회 (요구사항 4.3)
+  async getGoalProgress(): Promise<any> {
+    const response = await this.request<any>('/health/dashboard/goals');
+    
+    if (response.data) {
+      return response.data;
+    }
+
+    throw new Error('목표 달성률 조회에 실패했습니다');
+  }
 }
 
 export const healthApiService = new HealthApiService();

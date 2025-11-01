@@ -392,4 +392,133 @@ export class HealthController {
       });
     }
   }
+
+  /**
+   * 대시보드 종합 데이터 조회 (요구사항 4.1, 4.2, 4.3)
+   */
+  static async getDashboardData(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: '인증이 필요합니다',
+          },
+        });
+        return;
+      }
+
+      const dashboardData = await HealthService.getDashboardSummary(userId);
+
+      res.json({
+        success: true,
+        data: dashboardData,
+        message: '대시보드 데이터를 성공적으로 조회했습니다',
+      });
+    } catch (error) {
+      console.error('대시보드 데이터 조회 오류:', error);
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: '대시보드 데이터 조회 중 오류가 발생했습니다',
+        },
+      });
+    }
+  }
+
+  /**
+   * 건강 지표 트렌드 분석 (요구사항 4.1, 4.2)
+   */
+  static async getHealthTrends(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: '인증이 필요합니다',
+          },
+        });
+        return;
+      }
+
+      const { period = 'monthly', days = 30 } = req.query;
+      const vitalSignTypes = ['weight', 'blood_pressure', 'heart_rate', 'blood_sugar'];
+
+      // 각 바이탈 사인 타입별 트렌드 분석
+      const trendPromises = vitalSignTypes.map(type =>
+        HealthService.getVitalSignTrends(
+          userId,
+          type,
+          period as 'daily' | 'weekly' | 'monthly',
+          parseInt(days as string)
+        ).catch(() => null) // 데이터가 없는 경우 null 반환
+      );
+
+      const trends = await Promise.all(trendPromises);
+      const validTrends = trends.filter(trend => trend !== null);
+
+      res.json({
+        success: true,
+        data: {
+          trends: validTrends,
+          period,
+          days: parseInt(days as string),
+        },
+        message: '건강 지표 트렌드를 성공적으로 분석했습니다',
+      });
+    } catch (error) {
+      console.error('건강 지표 트렌드 분석 오류:', error);
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: '건강 지표 트렌드 분석 중 오류가 발생했습니다',
+        },
+      });
+    }
+  }
+
+  /**
+   * 목표 달성률 조회 (요구사항 4.3)
+   */
+  static async getGoalProgress(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: '인증이 필요합니다',
+          },
+        });
+        return;
+      }
+
+      const dashboardData = await HealthService.getDashboardSummary(userId);
+
+      res.json({
+        success: true,
+        data: {
+          goals: dashboardData.goals,
+          trends: dashboardData.trends,
+        },
+        message: '목표 달성률을 성공적으로 조회했습니다',
+      });
+    } catch (error) {
+      console.error('목표 달성률 조회 오류:', error);
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: '목표 달성률 조회 중 오류가 발생했습니다',
+        },
+      });
+    }
+  }
 }

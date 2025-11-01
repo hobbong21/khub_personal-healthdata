@@ -1,0 +1,359 @@
+/* 진료 기록 타임라인 스타일 (요구사항 5.1) */
+.medical-timeline {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.timeline-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.timeline-header h2 {
+  color: #2c3e50;
+  margin-bottom: 8px;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.timeline-header p {
+  color: #7f8c8d;
+  font-size: 1rem;
+}
+
+/* 로딩 및 에러 상태 */
+.timeline-loading,
+.timeline-error,
+.timeline-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #7f8c8d;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #ecf0f1;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.retry-button {
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.3s;
+}
+
+.retry-button:hover {
+  background: #2980b9;
+}
+
+/* 타임라인 컨테이너 */
+.timeline-container {
+  position: relative;
+  padding-left: 30px;
+}
+
+.timeline-container::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, #3498db, #e74c3c);
+}
+
+/* 타임라인 아이템 */
+.timeline-item {
+  position: relative;
+  margin-bottom: 30px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.timeline-item:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.timeline-marker {
+  position: absolute;
+  left: -30px;
+  top: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.timeline-icon {
+  font-size: 1.2rem;
+}
+
+/* 타임라인 타입별 색상 */
+.timeline-visit .timeline-marker {
+  background: #3498db;
+  border: 3px solid #2980b9;
+}
+
+.timeline-test .timeline-marker {
+  background: #e67e22;
+  border: 3px solid #d35400;
+}
+
+.timeline-prescription .timeline-marker {
+  background: #27ae60;
+  border: 3px solid #229954;
+}
+
+.timeline-appointment .timeline-marker {
+  background: #9b59b6;
+  border: 3px solid #8e44ad;
+}
+
+.timeline-default .timeline-marker {
+  background: #95a5a6;
+  border: 3px solid #7f8c8d;
+}
+
+/* 타임라인 콘텐츠 */
+.timeline-content {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #ecf0f1;
+}
+
+.timeline-visit .timeline-content {
+  border-left-color: #3498db;
+}
+
+.timeline-test .timeline-content {
+  border-left-color: #e67e22;
+}
+
+.timeline-prescription .timeline-content {
+  border-left-color: #27ae60;
+}
+
+.timeline-appointment .timeline-content {
+  border-left-color: #9b59b6;
+}
+
+.timeline-date {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+  color: #7f8c8d;
+}
+
+.timeline-date .date {
+  font-weight: 500;
+}
+
+.timeline-date .time {
+  font-size: 0.8rem;
+}
+
+.timeline-title {
+  color: #2c3e50;
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.timeline-description {
+  color: #34495e;
+  margin: 0 0 12px 0;
+  line-height: 1.5;
+}
+
+.timeline-details {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  margin-bottom: 8px;
+}
+
+.timeline-details .hospital {
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.timeline-status {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.status-normal {
+  background: #d5f4e6;
+  color: #27ae60;
+}
+
+.status-abnormal {
+  background: #fadbd8;
+  color: #e74c3c;
+}
+
+.status-critical {
+  background: #f8d7da;
+  color: #dc3545;
+}
+
+.status-pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+/* 모달 스타일 */
+.timeline-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.timeline-modal {
+  background: white;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.3rem;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #7f8c8d;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.modal-close:hover {
+  background: #ecf0f1;
+}
+
+.modal-content {
+  padding: 24px;
+}
+
+.modal-info p {
+  margin: 0 0 12px 0;
+  line-height: 1.5;
+}
+
+.modal-info strong {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.modal-metadata {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #ecf0f1;
+}
+
+.modal-metadata h4 {
+  margin: 0 0 12px 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .medical-timeline {
+    padding: 15px;
+  }
+
+  .timeline-container {
+    padding-left: 25px;
+  }
+
+  .timeline-container::before {
+    left: 15px;
+  }
+
+  .timeline-marker {
+    left: -25px;
+    width: 30px;
+    height: 30px;
+  }
+
+  .timeline-icon {
+    font-size: 1rem;
+  }
+
+  .timeline-content {
+    padding: 15px;
+  }
+
+  .timeline-date {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .timeline-modal {
+    margin: 10px;
+    max-height: 90vh;
+  }
+
+  .modal-header,
+  .modal-content {
+    padding: 16px;
+  }
+}

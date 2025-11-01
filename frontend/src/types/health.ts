@@ -70,3 +70,55 @@ export interface ApiResponse<T> {
     message: string;
   };
 }
+
+export interface DashboardSummaryResponse {
+  healthMetrics: {
+    latestVitalSigns: { [key: string]: any };
+    averageCondition: number | null;
+    totalRecords: number;
+    weeklyProgress: {
+      vitalSignsCount: number;
+      journalEntriesCount: number;
+      exerciseSessionsCount: number;
+    };
+  };
+  trends: {
+    weightTrend: 'increasing' | 'decreasing' | 'stable';
+    conditionTrend: 'improving' | 'declining' | 'stable';
+    exerciseFrequency: number;
+  };
+  goals: {
+    weightGoal?: {
+      target: number;
+      current: number;
+      progress: number;
+    };
+    exerciseGoal?: {
+      target: number;
+      current: number;
+      progress: number;
+    };
+  };
+  todaysTasks: Array<{
+    type: 'vital_sign' | 'exercise' | 'medication' | 'journal';
+    description: string;
+    completed: boolean;
+    priority: 'high' | 'medium' | 'low';
+  }>;
+}
+
+export interface HealthTrendResponse {
+  type: string;
+  period: string;
+  data: Array<{
+    date: string;
+    value: number | { systolic: number; diastolic: number };
+    average?: number;
+  }>;
+  statistics: {
+    min: number;
+    max: number;
+    average: number;
+    trend: 'increasing' | 'decreasing' | 'stable';
+  };
+}
