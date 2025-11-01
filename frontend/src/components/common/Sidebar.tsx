@@ -1,32 +1,24 @@
-import { Link, useLocation } from 'react-router-dom'
-import { useState } from 'react'
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import './Sidebar.css';
 
-const Sidebar = () => {
-  const location = useLocation()
-  const [isCollapsed, setIsCollapsed] = useState(false)
+const Sidebar: React.FC = () => {
+  const location = useLocation();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const menuItems = [
     {
       id: 'dashboard',
       label: '대시보드',
       path: '/dashboard',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M3 13H11V3H3V13ZM3 21H11V15H3V21ZM13 21H21V11H13V21ZM13 3V9H21V3H13Z" fill="currentColor"/>
-        </svg>
-      ),
+      icon: '📊',
       badge: null
     },
     {
       id: 'health',
       label: '건강 데이터',
       path: '/health',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" stroke="currentColor" strokeWidth="2" fill="none"/>
-          <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill="none"/>
-        </svg>
-      ),
+      icon: '💓',
       badge: '새로움',
       submenu: [
         { label: '바이탈 사인', path: '/health/vitals' },
@@ -38,37 +30,15 @@ const Sidebar = () => {
     {
       id: 'medical',
       label: '진료 기록',
-      path: '/medical',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" fill="none"/>
-          <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" fill="none"/>
-          <path d="M16 13H8" stroke="currentColor" strokeWidth="2"/>
-          <path d="M16 17H8" stroke="currentColor" strokeWidth="2"/>
-          <path d="M10 9H9H8" stroke="currentColor" strokeWidth="2"/>
-        </svg>
-      ),
-      badge: null,
-      submenu: [
-        { label: '진료 내역', path: '/medical/records' },
-        { label: '검사 결과', path: '/medical/tests' },
-        { label: '처방전', path: '/medical/prescriptions' },
-        { label: '예약 관리', path: '/medical/appointments' }
-      ]
+      path: '/medical-records',
+      icon: '🏥',
+      badge: null
     },
     {
       id: 'medication',
       label: '복약 관리',
       path: '/medication',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M10.5 2C9.67157 2 9 2.67157 9 3.5V4.5C9 5.32843 9.67157 6 10.5 6H13.5C14.3284 6 15 5.32843 15 4.5V3.5C15 2.67157 14.3284 2 13.5 2H10.5Z" stroke="currentColor" strokeWidth="2" fill="none"/>
-          <path d="M12 6V22" stroke="currentColor" strokeWidth="2"/>
-          <path d="M8 10H16" stroke="currentColor" strokeWidth="2"/>
-          <path d="M8 14H16" stroke="currentColor" strokeWidth="2"/>
-          <path d="M8 18H16" stroke="currentColor" strokeWidth="2"/>
-        </svg>
-      ),
+      icon: '💊',
       badge: '3',
       submenu: [
         { label: '복용 중인 약물', path: '/medication/current' },
@@ -81,45 +51,21 @@ const Sidebar = () => {
       id: 'appointments',
       label: '병원 예약',
       path: '/appointments',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z" stroke="currentColor" strokeWidth="2" fill="none"/>
-          <path d="M16 2V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-          <path d="M8 2V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-          <path d="M3 10H21" stroke="currentColor" strokeWidth="2"/>
-          <path d="M8 14H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-          <path d="M8 18H12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-        </svg>
-      ),
+      icon: '📅',
       badge: null
     },
     {
       id: 'family-history',
       label: '가족력 관리',
       path: '/family-history',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M16 4C16 6.20914 14.2091 8 12 8C9.79086 8 8 6.20914 8 4C8 1.79086 9.79086 0 12 0C14.2091 0 16 1.79086 16 4Z" fill="currentColor"/>
-          <path d="M12 10C8.68629 10 6 12.6863 6 16V18H18V16C18 12.6863 15.3137 10 12 10Z" fill="currentColor"/>
-          <path d="M6 4C6 5.10457 5.10457 6 4 6C2.89543 6 2 5.10457 2 4C2 2.89543 2.89543 2 4 2C5.10457 2 6 2.89543 6 4Z" fill="currentColor"/>
-          <path d="M22 4C22 5.10457 21.1046 6 20 6C18.8954 6 18 5.10457 18 4C18 2.89543 18.8954 2 20 2C21.1046 2 22 2.89543 22 4Z" fill="currentColor"/>
-          <path d="M4 8C2.34315 8 1 9.34315 1 11V12H7V11C7 9.34315 5.65685 8 4 8Z" fill="currentColor"/>
-          <path d="M20 8C21.6569 8 23 9.34315 23 11V12H17V11C17 9.34315 18.3431 8 20 8Z" fill="currentColor"/>
-        </svg>
-      ),
+      icon: '👨‍👩‍👧‍👦',
       badge: null
     },
     {
       id: 'genomics',
       label: '유전체 분석',
       path: '/genomics',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" fill="none"/>
-          <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" fill="none"/>
-          <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" fill="none"/>
-        </svg>
-      ),
+      icon: '🧬',
       badge: null,
       submenu: [
         { label: '유전자 데이터', path: '/genomics/data' },
@@ -128,64 +74,75 @@ const Sidebar = () => {
       ]
     },
     {
+      id: 'ai',
+      label: 'AI 인사이트',
+      path: '/ai-insights',
+      icon: '🧠',
+      badge: 'AI',
+      submenu: [
+        { label: '건강 예측', path: '/ai-insights/predictions' },
+        { label: '맞춤 권장사항', path: '/ai-insights/recommendations' },
+        { label: '이상 징후 감지', path: '/ai-insights/anomaly-detection' },
+        { label: '건강 점수', path: '/ai-insights/health-score' }
+      ]
+    },
+    {
+      id: 'wearable',
+      label: '웨어러블 기기',
+      path: '/wearable',
+      icon: '⌚',
+      badge: null,
+      submenu: [
+        { label: '기기 관리', path: '/wearable/devices' },
+        { label: '동기화 상태', path: '/wearable/sync' },
+        { label: '데이터 분석', path: '/wearable/analytics' }
+      ]
+    },
+    {
+      id: 'nlp',
+      label: 'AI 건강 어시스턴트',
+      path: '/nlp',
+      icon: '💬',
+      badge: 'NLP',
+      submenu: [
+        { label: '건강 상담 챗봇', path: '/nlp/chatbot' },
+        { label: '의료 문서 분석', path: '/nlp/documents' },
+        { label: '증상 분석', path: '/nlp/symptoms' },
+        { label: '사용 통계', path: '/nlp/stats' }
+      ]
+    },
+    {
       id: 'profile',
       label: '프로필 관리',
       path: '/profile',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      ),
+      icon: '👤',
       badge: null
-    },
-    {
-      id: 'ai',
-      label: 'AI 인사이트',
-      path: '/ai',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M9.663 17H4.5C3.11929 17 2 15.8807 2 14.5C2 13.1193 3.11929 12 4.5 12C4.55885 12 4.61725 12.0018 4.67508 12.0054C4.27671 11.2618 4.05 10.4006 4.05 9.5C4.05 6.46243 6.51243 4 9.55 4C12.0673 4 14.1925 5.69896 14.8299 8.02299C15.0399 8.00779 15.2526 8 15.4667 8C18.5041 8 21 10.4959 21 13.5333C21 16.5708 18.5041 19.0667 15.4667 19.0667H9.663V17Z" stroke="currentColor" strokeWidth="2" fill="none"/>
-          <path d="M12 15L9 12L12 9" stroke="currentColor" strokeWidth="2" fill="none"/>
-          <path d="M15 12H9" stroke="currentColor" strokeWidth="2"/>
-        </svg>
-      ),
-      badge: 'AI',
-      submenu: [
-        { label: '건강 예측', path: '/ai/predictions' },
-        { label: '맞춤 권장사항', path: '/ai/recommendations' },
-        { label: '이상 징후 감지', path: '/ai/anomaly-detection' },
-        { label: '건강 점수', path: '/ai/health-score' }
-      ]
     }
-  ]
+  ];
 
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['dashboard'])
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['health', 'medication']);
 
   const toggleSubmenu = (menuId: string) => {
     setExpandedMenus(prev => 
       prev.includes(menuId) 
         ? prev.filter(id => id !== menuId)
         : [...prev, menuId]
-    )
-  }
+    );
+  };
 
   const isActive = (path: string) => {
-    return location.pathname === path || location.pathname.startsWith(path + '/')
-  }
+    return location.pathname === path || location.pathname.startsWith(path + '/');
+  };
 
   return (
     <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
-      {/* Sidebar Header */}
       <div className="sidebar-header">
         <button 
           className="sidebar-toggle"
           onClick={() => setIsCollapsed(!isCollapsed)}
           title={isCollapsed ? '사이드바 확장' : '사이드바 축소'}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
+          {isCollapsed ? '→' : '←'}
         </button>
         
         {!isCollapsed && (
@@ -195,7 +152,6 @@ const Sidebar = () => {
         )}
       </div>
 
-      {/* Navigation Menu */}
       <nav className="sidebar-nav">
         <ul className="nav-list">
           {menuItems.map((item) => (
@@ -215,27 +171,24 @@ const Sidebar = () => {
                       <span className="nav-label">{item.label}</span>
                       
                       {item.badge && (
-                        <span className={`nav-badge ${item.badge === 'AI' ? 'ai' : item.badge === '새로움' ? 'new' : 'count'}`}>
+                        <span className={`nav-badge ${
+                          item.badge === 'AI' ? 'ai' : 
+                          item.badge === 'NLP' ? 'nlp' :
+                          item.badge === '새로움' ? 'new' : 'count'
+                        }`}>
                           {item.badge}
                         </span>
                       )}
                       
                       {item.submenu && (
-                        <svg 
-                          className={`nav-arrow ${expandedMenus.includes(item.id) ? 'expanded' : ''}`}
-                          width="16" 
-                          height="16" 
-                          viewBox="0 0 24 24" 
-                          fill="none"
-                        >
-                          <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
+                        <span className={`nav-arrow ${expandedMenus.includes(item.id) ? 'expanded' : ''}`}>
+                          ▼
+                        </span>
                       )}
                     </>
                   )}
                 </Link>
 
-                {/* Submenu */}
                 {item.submenu && !isCollapsed && expandedMenus.includes(item.id) && (
                   <ul className="submenu">
                     {item.submenu.map((subItem) => (
@@ -244,7 +197,7 @@ const Sidebar = () => {
                           to={subItem.path}
                           className={`submenu-link ${isActive(subItem.path) ? 'active' : ''}`}
                         >
-                          <span className="submenu-dot"></span>
+                          <span className="submenu-dot">•</span>
                           {subItem.label}
                         </Link>
                       </li>
@@ -257,7 +210,6 @@ const Sidebar = () => {
         </ul>
       </nav>
 
-      {/* Sidebar Footer */}
       {!isCollapsed && (
         <div className="sidebar-footer">
           <div className="health-summary">
@@ -276,7 +228,7 @@ const Sidebar = () => {
         </div>
       )}
     </aside>
-  )
-}
+  );
+};
 
-export default Sidebar
+export default Sidebar;

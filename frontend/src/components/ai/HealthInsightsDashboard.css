@@ -1,0 +1,251 @@
+.health-insights-dashboard {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.header-content h1 {
+  margin: 0;
+  color: #1976d2;
+  font-size: 2.5rem;
+  font-weight: 600;
+}
+
+.header-content p {
+  margin: 0.5rem 0 0 0;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.refresh-button {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #1976d2, #42a5f5);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.refresh-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1565c0, #1e88e5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+}
+
+.refresh-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.refresh-button.refreshing {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.insights-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.risk-predictions-section h2,
+.risk-factors-section h2,
+.deterioration-section h2,
+.recommendations-section h2 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.risk-predictions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+}
+
+.insights-summary {
+  margin-top: 2rem;
+}
+
+.summary-card {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid #dee2e6;
+}
+
+.summary-card h3 {
+  margin: 0 0 1rem 0;
+  color: #495057;
+  font-size: 1.4rem;
+}
+
+.summary-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 1.1rem;
+  color: #495057;
+  font-weight: 600;
+}
+
+.health-insights-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1rem;
+}
+
+.health-insights-loading p {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.health-insights-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.error-content {
+  text-align: center;
+  padding: 2rem;
+  background: #fff5f5;
+  border: 1px solid #fed7d7;
+  border-radius: 12px;
+  max-width: 400px;
+}
+
+.error-content h3 {
+  margin: 0 0 1rem 0;
+  color: #c53030;
+  font-size: 1.4rem;
+}
+
+.error-content p {
+  margin: 0 0 1.5rem 0;
+  color: #744210;
+}
+
+.retry-button {
+  padding: 0.75rem 1.5rem;
+  background: #c53030;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.retry-button:hover {
+  background: #9b2c2c;
+}
+
+.no-insights {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.no-insights-content {
+  text-align: center;
+  padding: 3rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  max-width: 500px;
+}
+
+.no-insights-content h3 {
+  margin: 0 0 1rem 0;
+  color: #495057;
+  font-size: 1.6rem;
+}
+
+.no-insights-content p {
+  margin: 0 0 2rem 0;
+  color: #6c757d;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.generate-button {
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.generate-button:hover {
+  background: linear-gradient(135deg, #218838, #1ea085);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+@media (max-width: 768px) {
+  .health-insights-dashboard {
+    padding: 1rem;
+  }
+  
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .header-content h1 {
+    font-size: 2rem;
+  }
+  
+  .risk-predictions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .summary-stats {
+    grid-template-columns: 1fr;
+  }
+}

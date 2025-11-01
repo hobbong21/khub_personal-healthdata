@@ -1,0 +1,11 @@
+.nlp-page {
+  min-height: 100vh;
+  background: #f8fafc;
+  padding: 0;
+}
+
+@media (max-width: 768px) {
+  .nlp-page {
+    padding: 0;
+  }
+}

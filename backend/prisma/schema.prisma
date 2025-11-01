@@ -37,6 +37,9 @@ model User {
   documents            Document[]
   predictions          Prediction[]
   appointments         Appointment[]
+  recommendations      Recommendation[]
+  recommendationEffectiveness RecommendationEffectiveness[]
+  wearableDeviceConfigs WearableDeviceConfig[]
   
   @@map("users")
 }
@@ -218,14 +221,34 @@ model GenomicData {
   userId           String   @map("user_id")
   sourcePlatform   String   @map("source_platform")
   filePath         String?  @map("file_path")
-  snpData          Json?    @map("snp_data")
-  analysisResults  Json?    @map("analysis_results")
+  snpData          Json?    @map("snp_data") // Encrypted JSON storage
+  analysisResults  Json?    @map("analysis_results") // Encrypted JSON storage
   uploadedAt       DateTime @default(now()) @map("uploaded_at")
   
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   riskAssessments RiskAssessment[]
+  snpRecords      SNPRecord[]
   
   @@map("genomic_data")
+}
+
+model SNPRecord {
+  id            String   @id @default(cuid())
+  genomicDataId String   @map("genomic_data_id")
+  rsid          String
+  chromosome    String
+  position      BigInt
+  genotype      String
+  gene          String?
+  consequence   String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  
+  genomicData GenomicData @relation(fields: [genomicDataId], references: [id], onDelete: Cascade)
+  
+  @@index([rsid])
+  @@index([chromosome, position])
+  @@index([gene])
+  @@map("snp_records")
 }
 
 model RiskAssessment {
@@ -429,4 +452,102 @@ model AppointmentNotification {
   
   @@index([scheduledTime, status])
   @@map("appointment_notifications")
+}
+
+model Recommendation {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  nutrition   Json     // Array of NutritionRecommendation objects
+  exercise    Json     // Array of ExerciseRecommendation objects
+  screening   Json     // Array of ScreeningRecommendation objects
+  lifestyle   Json     // Array of LifestyleRecommendation objects
+  generatedAt DateTime @default(now()) @map("generated_at")
+  validUntil  DateTime @map("valid_until")
+  confidence  Float    // Overall confidence score (0-1)
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, generatedAt])
+  @@index([validUntil])
+  @@map("recommendations")
+}
+
+model RecommendationEffectiveness {
+  recommendationId    String   @map("recommendation_id")
+  userId              String   @map("user_id")
+  category            String   // nutrition, exercise, screening, lifestyle
+  implemented         Boolean  @default(false)
+  implementationDate  DateTime? @map("implementation_date")
+  adherenceScore      Int?     @map("adherence_score") // 0-100
+  measuredOutcome     Json?    @map("measured_outcome") // Before/after measurements
+  userFeedback        Json?    @map("user_feedback") // Rating and comments
+  lastUpdated         DateTime @default(now()) @map("last_updated")
+  
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@id([recommendationId, userId])
+  @@index([userId, category])
+  @@index([implemented])
+  @@map("recommendation_effectiveness")
+}
+
+model WearableDeviceConfig {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  deviceType   String   @map("device_type") // apple_health, google_fit, fitbit, samsung_health
+  deviceName   String   @map("device_name")
+  isActive     Boolean  @default(true) @map("is_active")
+  accessToken  String?  @map("access_token")
+  refreshToken String?  @map("refresh_token")
+  lastSyncAt   DateTime? @map("last_sync_at")
+  syncSettings Json     @map("sync_settings") // { autoSync, syncInterval, dataTypes }
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wearableDataPoints WearableDataPoint[]
+  wearableDataTemp   WearableDataTemp[]
+  
+  @@index([userId, deviceType])
+  @@index([isActive])
+  @@map("wearable_device_configs")
+}
+
+model WearableDataPoint {
+  id               String   @id @default(cuid())
+  deviceConfigId   String   @map("device_config_id")
+  dataType         String   @map("data_type") // heart_rate, steps, calories, sleep, weight, etc.
+  value            Json     // Can be number or object (e.g., {systolic: 120, diastolic: 80})
+  unit             String
+  startTime        DateTime @map("start_time")
+  endTime          DateTime? @map("end_time")
+  sourceApp        String?  @map("source_app")
+  metadata         Json?
+  syncedAt         DateTime @default(now()) @map("synced_at")
+  
+  deviceConfig WearableDeviceConfig @relation(fields: [deviceConfigId], references: [id], onDelete: Cascade)
+  
+  @@unique([deviceConfigId, dataType, startTime], name: "deviceConfigId_dataType_timestamp")
+  @@index([dataType, startTime])
+  @@index([syncedAt])
+  @@map("wearable_data_points")
+}
+
+model WearableDataTemp {
+  id             String   @id @default(cuid())
+  deviceConfigId String   @map("device_config_id")
+  dataType       String   @map("data_type")
+  value          Float
+  unit           String
+  timestamp      DateTime
+  endTime        DateTime? @map("end_time")
+  metadata       Json?
+  processed      Boolean  @default(false)
+  createdAt      DateTime @default(now()) @map("created_at")
+  
+  deviceConfig WearableDeviceConfig @relation(fields: [deviceConfigId], references: [id], onDelete: Cascade)
+  
+  @@index([deviceConfigId, processed])
+  @@index([timestamp])
+  @@map("wearable_data_temp")
 }

@@ -1,73 +1,119 @@
-import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import LoginForm from '../components/auth/LoginForm';
-import RegisterForm from '../components/auth/RegisterForm';
+import './AuthPage.css';
 
-// 인증 페이지 컴포넌트 (요구사항 1.1, 1.5)
-export function AuthPage() {
-  const { isAuthenticated } = useAuth();
+const AuthPage: React.FC = () => {
   const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  
+  const { login } = useAuth();
 
-  // 이미 인증된 사용자는 대시보드로 리다이렉트
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
-  const handleSwitchMode = () => {
-    setMode(mode === 'login' ? 'register' : 'login');
-  };
-
-  const handleSuccess = () => {
-    // AuthContext에서 자동으로 리다이렉트 처리됨
+    try {
+      if (mode === 'login') {
+        await login(email, password);
+      } else {
+        // Register logic would go here
+        await login(email, password);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="auth-page">
       <div className="auth-container">
         <div className="auth-header">
-          <h1>개인 건강 플랫폼</h1>
-          <p>당신의 건강을 체계적으로 관리하세요</p>
-        </div>
-
-        <div className="auth-content">
-          {mode === 'login' ? (
-            <LoginForm
-              onSuccess={handleSuccess}
-              onSwitchToRegister={handleSwitchMode}
-            />
-          ) : (
-            <RegisterForm
-              onSuccess={handleSuccess}
-              onSwitchToLogin={handleSwitchMode}
-            />
-          )}
-        </div>
-
-        <div className="auth-features">
-          <h3>플랫폼 주요 기능</h3>
-          <div className="features-grid">
-            <div className="feature-item">
-              <h4>건강 데이터 관리</h4>
-              <p>바이탈 사인, 건강 일지, 운동 기록을 체계적으로 관리</p>
-            </div>
-            <div className="feature-item">
-              <h4>BMI 자동 계산</h4>
-              <p>키와 몸무게 입력 시 BMI를 자동으로 계산하고 분석</p>
-            </div>
-            <div className="feature-item">
-              <h4>진료 기록 보관</h4>
-              <p>병원 방문 내역과 처방전을 안전하게 보관</p>
-            </div>
-            <div className="feature-item">
-              <h4>AI 건강 분석</h4>
-              <p>머신러닝 기반 개인화된 건강 인사이트 제공</p>
-            </div>
+          <div className="logo">
+            <span className="logo-icon">🏥</span>
+            <span className="logo-text">K-hub</span>
           </div>
+          <h1>{mode === 'login' ? '로그인' : '회원가입'}</h1>
+          <p>건강한 삶을 위한 첫 걸음을 시작하세요</p>
+        </div>
+
+        <form className="auth-form" onSubmit={handleSubmit}>
+          {mode === 'register' && (
+            <div className="form-group">
+              <label>이름</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="이름을 입력하세요"
+                required
+              />
+            </div>
+          )}
+          
+          <div className="form-group">
+            <label>이메일</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="이메일을 입력하세요"
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>비밀번호</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="비밀번호를 입력하세요"
+              required
+            />
+          </div>
+
+          {error && (
+            <div className="error-message">
+              {error}
+            </div>
+          )}
+
+          <button 
+            type="submit" 
+            className="auth-btn"
+            disabled={loading}
+          >
+            {loading ? '처리 중...' : (mode === 'login' ? '로그인' : '회원가입')}
+          </button>
+        </form>
+
+        <div className="auth-footer">
+          <p>
+            {mode === 'login' ? '계정이 없으신가요?' : '이미 계정이 있으신가요?'}
+            <button 
+              className="mode-switch-btn"
+              onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
+            >
+              {mode === 'login' ? '회원가입' : '로그인'}
+            </button>
+          </p>
+        </div>
+
+        <div className="demo-info">
+          <h4>데모 계정</h4>
+          <p>이메일: demo@khub.com</p>
+          <p>비밀번호: demo123</p>
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default AuthPage;

@@ -1,0 +1,289 @@
+.wearable-page {
+  min-height: 100vh;
+  background: #f9fafb;
+  padding: 24px;
+}
+
+.page-header {
+  max-width: 1200px;
+  margin: 0 auto 32px auto;
+  text-align: center;
+}
+
+.page-header h1 {
+  margin: 0 0 12px 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1f2937;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.page-description {
+  margin: 0;
+  font-size: 16px;
+  color: #6b7280;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.wearable-info {
+  max-width: 1200px;
+  margin: 48px auto 0 auto;
+}
+
+.info-section {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 32px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.info-section:last-child {
+  margin-bottom: 0;
+}
+
+.info-section h3 {
+  margin: 0 0 24px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.supported-devices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.device-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #f3f4f6;
+}
+
+.device-logo {
+  font-size: 32px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.device-info h4 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.device-info p {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.data-types {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+}
+
+.data-category {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #f3f4f6;
+}
+
+.data-category h4 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.data-category ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.data-category li {
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.data-category li:last-child {
+  margin-bottom: 0;
+}
+
+.privacy-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+}
+
+.privacy-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  background: #f0f9ff;
+  border-radius: 8px;
+  border: 1px solid #e0f2fe;
+}
+
+.privacy-icon {
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.privacy-item h4 {
+  margin: 0 0 6px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.privacy-item p {
+  margin: 0;
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .wearable-page {
+    padding: 16px;
+  }
+
+  .page-header h1 {
+    font-size: 28px;
+  }
+
+  .page-description {
+    font-size: 15px;
+  }
+
+  .info-section {
+    padding: 24px;
+  }
+
+  .info-section h3 {
+    font-size: 18px;
+  }
+
+  .supported-devices {
+    grid-template-columns: 1fr;
+  }
+
+  .data-types {
+    grid-template-columns: 1fr;
+  }
+
+  .privacy-info {
+    grid-template-columns: 1fr;
+  }
+
+  .device-info,
+  .privacy-item {
+    padding: 16px;
+  }
+
+  .device-logo {
+    font-size: 28px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .privacy-icon {
+    font-size: 20px;
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .wearable-page {
+    padding: 12px;
+  }
+
+  .page-header {
+    margin-bottom: 24px;
+  }
+
+  .page-header h1 {
+    font-size: 24px;
+  }
+
+  .page-description {
+    font-size: 14px;
+  }
+
+  .info-section {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .info-section h3 {
+    font-size: 16px;
+    margin-bottom: 16px;
+  }
+
+  .device-info,
+  .data-category,
+  .privacy-item {
+    padding: 12px;
+  }
+
+  .device-info h4,
+  .data-category h4,
+  .privacy-item h4 {
+    font-size: 14px;
+  }
+
+  .device-info p,
+  .data-category li,
+  .privacy-item p {
+    font-size: 12px;
+  }
+
+  .device-logo {
+    font-size: 24px;
+    width: 32px;
+    height: 32px;
+  }
+
+  .privacy-icon {
+    font-size: 18px;
+    width: 28px;
+    height: 28px;
+  }
+}

@@ -16,6 +16,13 @@ import medicationRoutes from './routes/medication';
 import notificationRoutes from './routes/notification';
 import familyHistoryRoutes from './routes/familyHistory';
 import appointmentRoutes from './routes/appointment';
+import genomicsRoutes from './routes/genomics';
+import aiRoutes from './routes/ai';
+import recommendationRoutes from './routes/recommendations';
+import nlpRoutes from './routes/nlp';
+import wearableRoutes from './routes/wearable';
+import appleHealthRoutes from './routes/appleHealth';
+import googleFitRoutes from './routes/googleFit';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -72,6 +79,13 @@ app.use('/api/medications', medicationRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/family-history', familyHistoryRoutes);
 app.use('/api/appointments', appointmentRoutes);
+app.use('/api/genomics', genomicsRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/recommendations', recommendationRoutes);
+app.use('/api/nlp', nlpRoutes);
+app.use('/api/wearable', wearableRoutes);
+app.use('/api/apple-health', appleHealthRoutes);
+app.use('/api/google-fit', googleFitRoutes);
 
 // Error handling middleware
 app.use(notFound);

@@ -4,12 +4,23 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Header from './components/common/Header'
 import Sidebar from './components/common/Sidebar'
 import Dashboard from './pages/Dashboard'
+import EnhancedDashboard from './pages/EnhancedDashboard'
+import SimpleLandingPage from './pages/SimpleLandingPage'
 import AuthPage from './pages/AuthPage'
 import HealthPage from './pages/HealthPage'
+import VitalSignsPage from './pages/health/VitalSignsPage'
+import HealthJournalPage from './pages/health/HealthJournalPage'
 import ProfilePage from './pages/ProfilePage'
+import EnhancedProfilePage from './pages/EnhancedProfilePage'
 import { MedicationPage } from './pages/MedicationPage'
+import MedicationSchedulePage from './pages/medication/MedicationSchedulePage'
 import FamilyHistoryPage from './pages/FamilyHistoryPage'
 import { AppointmentsPage } from './pages/AppointmentsPage'
+import GenomicsPage from './pages/GenomicsPage'
+import AIInsightsPage from './pages/AIInsightsPage'
+import NLPPage from './pages/NLPPage'
+import WearablePage from './pages/WearablePage'
+import MedicalRecordsPage from './pages/MedicalRecordsPage'
 import './App.css'
 import './styles/auth.css'
 import './styles/profile.css'
@@ -18,6 +29,7 @@ import './styles/dashboard.css'
 import './styles/medication.css'
 import './styles/familyHistory.css'
 import './styles/appointment.css'
+import './pages/MedicalRecordsPage.css'
 
 const queryClient = new QueryClient()
 
@@ -47,8 +59,9 @@ function AppLayout() {
   if (!isAuthenticated) {
     return (
       <Routes>
+        <Route path="/" element={<SimpleLandingPage />} />
         <Route path="/auth" element={<AuthPage />} />
-        <Route path="*" element={<Navigate to="/auth" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
   }
@@ -65,6 +78,14 @@ function AppLayout() {
               path="/dashboard" 
               element={
                 <ProtectedRoute>
+                  <EnhancedDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/dashboard/original" 
+              element={
+                <ProtectedRoute>
                   <Dashboard />
                 </ProtectedRoute>
               } 
@@ -78,7 +99,31 @@ function AppLayout() {
               } 
             />
             <Route 
+              path="/health/vitals" 
+              element={
+                <ProtectedRoute>
+                  <VitalSignsPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/health/journal" 
+              element={
+                <ProtectedRoute>
+                  <HealthJournalPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
               path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <EnhancedProfilePage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/profile/original" 
               element={
                 <ProtectedRoute>
                   <ProfilePage />
@@ -90,6 +135,14 @@ function AppLayout() {
               element={
                 <ProtectedRoute>
                   <MedicationPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/medication/schedule" 
+              element={
+                <ProtectedRoute>
+                  <MedicationSchedulePage />
                 </ProtectedRoute>
               } 
             />
@@ -106,6 +159,46 @@ function AppLayout() {
               element={
                 <ProtectedRoute>
                   <AppointmentsPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/genomics" 
+              element={
+                <ProtectedRoute>
+                  <GenomicsPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/ai-insights" 
+              element={
+                <ProtectedRoute>
+                  <AIInsightsPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/nlp" 
+              element={
+                <ProtectedRoute>
+                  <NLPPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/wearable" 
+              element={
+                <ProtectedRoute>
+                  <WearablePage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/medical-records" 
+              element={
+                <ProtectedRoute>
+                  <MedicalRecordsPage />
                 </ProtectedRoute>
               } 
             />

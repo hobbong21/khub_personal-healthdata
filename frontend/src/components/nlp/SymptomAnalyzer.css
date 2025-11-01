@@ -1,0 +1,403 @@
+.symptom-analyzer {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.analyzer-header {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  padding: 24px;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.analyzer-header h2 {
+  margin: 0 0 4px 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.analyzer-header p {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 14px;
+}
+
+.analyzer-content {
+  padding: 24px;
+}
+
+.input-section {
+  margin-bottom: 32px;
+}
+
+.symptom-input-container {
+  margin-bottom: 24px;
+}
+
+.symptom-input-container label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #374151;
+  font-size: 16px;
+}
+
+.symptom-input {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 120px;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.symptom-input:focus {
+  outline: none;
+  border-color: #f59e0b;
+}
+
+.symptom-input::placeholder {
+  color: #9ca3af;
+}
+
+.example-symptoms {
+  margin-bottom: 24px;
+}
+
+.example-symptoms h4 {
+  margin: 0 0 12px 0;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.examples-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.example-button {
+  padding: 8px 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.example-button:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.analyze-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  background: #f59e0b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 16px;
+}
+
+.analyze-button:hover:not(:disabled) {
+  background: #d97706;
+}
+
+.analyze-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.button-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+  margin-top: 16px;
+}
+
+.error-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.analysis-results {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 24px;
+}
+
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.results-header h3 {
+  margin: 0;
+  color: #111827;
+  font-size: 20px;
+}
+
+.analysis-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.severity-badge,
+.urgency-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.severity-badge.high,
+.urgency-badge.high {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.severity-badge.medium,
+.urgency-badge.medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.severity-badge.low,
+.urgency-badge.low {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.severity-badge.unknown,
+.urgency-badge.unknown {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.severity-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.severity-icon.high {
+  color: #dc2626;
+}
+
+.severity-icon.medium {
+  color: #d97706;
+}
+
+.severity-icon.low {
+  color: #059669;
+}
+
+.urgency-message {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #f8fafc;
+  border-left: 4px solid #f59e0b;
+  border-radius: 0 8px 8px 0;
+}
+
+.message-content {
+  color: #374151;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.detected-symptoms {
+  margin-bottom: 24px;
+}
+
+.detected-symptoms h4 {
+  margin: 0 0 12px 0;
+  color: #374151;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.symptoms-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.symptom-tag {
+  padding: 6px 12px;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.suggested-actions {
+  margin-bottom: 24px;
+}
+
+.suggested-actions h4 {
+  margin: 0 0 12px 0;
+  color: #374151;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.actions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.action-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 0;
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.action-icon {
+  width: 16px;
+  height: 16px;
+  color: #059669;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.disclaimer {
+  margin-bottom: 16px;
+  padding: 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+}
+
+.disclaimer-content {
+  display: flex;
+  gap: 12px;
+}
+
+.disclaimer-icon {
+  width: 20px;
+  height: 20px;
+  color: #dc2626;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.disclaimer h5 {
+  margin: 0 0 8px 0;
+  color: #991b1b;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.disclaimer p {
+  margin: 0;
+  color: #7f1d1d;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.analysis-meta {
+  padding-top: 16px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.analysis-meta p {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+@media (max-width: 768px) {
+  .analyzer-content {
+    padding: 16px;
+  }
+  
+  .results-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .analysis-badges {
+    width: 100%;
+  }
+  
+  .severity-badge,
+  .urgency-badge {
+    flex: 1;
+    justify-content: center;
+  }
+  
+  .examples-list {
+    max-height: 120px;
+    overflow-y: auto;
+  }
+}

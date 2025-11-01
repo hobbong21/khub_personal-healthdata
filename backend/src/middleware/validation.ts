@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { validationResult } from 'express-validator';
 import Joi from 'joi';
 
 /**
@@ -1350,6 +1351,30 @@ export function validateFamilyMember(req: Request, res: Response, next: NextFunc
     res.status(400).json({
       success: false,
       error: handleValidationError(error),
+    });
+    return;
+  }
+
+  next();
+}
+
+/**
+ * Express-validator 결과 검증 미들웨어
+ */
+export function validateRequest(req: Request, res: Response, next: NextFunction): void {
+  const errors = validationResult(req);
+  
+  if (!errors.isEmpty()) {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: '입력 데이터가 유효하지 않습니다',
+        details: errors.array().map(error => ({
+          field: error.type === 'field' ? error.path : error.type,
+          message: error.msg,
+        })),
+      },
     });
     return;
   }

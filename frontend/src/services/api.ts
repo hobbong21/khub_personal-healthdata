@@ -54,6 +54,36 @@ class ApiService {
     return data;
   }
 
+  // HTTP method helpers
+  async get<T>(endpoint: string): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { method: 'GET' });
+  }
+
+  async post<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, {
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  async put<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, {
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  async patch<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, {
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { method: 'DELETE' });
+  }
+
   // 인증 관련 API (요구사항 1.1, 1.5)
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     const response = await this.request<AuthResponse>('/auth/login', {
@@ -221,4 +251,5 @@ class ApiService {
 }
 
 export const apiService = new ApiService();
+export const api = apiService; // 다른 서비스들이 사용할 수 있도록 export
 export default apiService;

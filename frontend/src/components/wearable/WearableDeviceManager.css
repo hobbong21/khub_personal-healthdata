@@ -1,0 +1,191 @@
+.wearable-manager {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.wearable-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.wearable-header h2 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px;
+  color: #6b7280;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e5e7eb;
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.error-icon {
+  font-size: 20px;
+}
+
+.error-close {
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-size: 20px;
+  cursor: pointer;
+  margin-left: auto;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.error-close:hover {
+  background: rgba(220, 38, 38, 0.1);
+}
+
+.devices-section {
+  margin-top: 32px;
+}
+
+.devices-section h3 {
+  margin: 0 0 24px 0;
+  color: #1f2937;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.no-devices {
+  text-align: center;
+  padding: 64px 32px;
+  background: #f9fafb;
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+}
+
+.no-devices-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.no-devices h4 {
+  margin: 0 0 8px 0;
+  color: #1f2937;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.no-devices p {
+  margin: 0 0 24px 0;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.devices-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .wearable-manager {
+    padding: 16px;
+  }
+
+  .wearable-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .wearable-header h2 {
+    font-size: 24px;
+    text-align: center;
+  }
+
+  .devices-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .no-devices {
+    padding: 48px 24px;
+  }
+
+  .no-devices-icon {
+    font-size: 48px;
+  }
+}
+
+@media (max-width: 480px) {
+  .wearable-manager {
+    padding: 12px;
+  }
+
+  .wearable-header h2 {
+    font-size: 20px;
+  }
+
+  .btn-primary {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+
+  .no-devices {
+    padding: 32px 16px;
+  }
+}
