@@ -55,11 +55,11 @@ export interface PerformanceLogEntry extends LogEntry {
 }
 
 export class LoggingService {
-  private logger: Logger;
-  private securityLogger: Logger;
-  private performanceLogger: Logger;
-  private auditLogger: Logger;
-  private errorLogger: Logger;
+  private logger!: Logger;
+  private securityLogger!: Logger;
+  private performanceLogger!: Logger;
+  private auditLogger!: Logger;
+  private errorLogger!: Logger;
 
   constructor() {
     this.initializeLoggers();
@@ -407,9 +407,9 @@ export class LoggingService {
 
     return {
       userId: req.user?.id,
-      sessionId: req.sessionID,
+      sessionId: (req as any).sessionID || 'unknown',
       requestId: (req as any).requestId,
-      ip: maskPII(req.ip || req.connection.remoteAddress || 'unknown'),
+      ip: maskPII(req.ip || req.socket.remoteAddress || 'unknown'),
       userAgent: maskPII(req.get('User-Agent') || 'unknown')
     };
   }

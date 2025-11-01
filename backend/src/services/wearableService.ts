@@ -375,13 +375,22 @@ export class WearableService {
     try {
       // GoogleFitService를 사용하여 실제 데이터 수집
       const { GoogleFitService } = await import('./googleFitService');
-      const result = await GoogleFitService.fetchGoogleFitData(
-        deviceConfig.userId,
-        deviceConfig.id,
-        dataType,
-        startDate,
-        endDate
-      );
+      const googleFitService = new GoogleFitService();
+      googleFitService.setCredentials(deviceConfig.accessToken, deviceConfig.refreshToken || '');
+      
+      const normalizedData = await googleFitService.getDataByType(dataType, startDate, endDate);
+      
+      // GoogleFitData 형식으로 변환
+      const result = {
+        success: true,
+        data: normalizedData.map(item => ({
+          dataType: item.type,
+          value: item.value,
+          unit: item.unit,
+          timestamp: item.timestamp,
+          source: item.source
+        }))
+      };
 
       if (result.success) {
         return result.data;
@@ -733,12 +742,8 @@ export class WearableService {
     try {
       // GoogleFitService를 사용하여 실제 OAuth 토큰 교환
       const { GoogleFitService } = await import('./googleFitService');
-      const tokens = await GoogleFitService.exchangeAuthCodeForTokens(
-        authCode, 
-        redirectUri, 
-        clientId, 
-        clientSecret
-      );
+      const googleFitService = new GoogleFitService();
+      const tokens = await googleFitService.exchangeCodeForTokens(authCode);
       
       return {
         accessToken: tokens.accessToken,
@@ -782,7 +787,9 @@ export class WearableService {
 
       // GoogleFitService를 사용하여 실제 토큰 갱신
       const { GoogleFitService } = await import('./googleFitService');
-      const tokens = await GoogleFitService.refreshAccessToken(refreshToken, clientId, clientSecret);
+      const googleFitService = new GoogleFitService();
+      googleFitService.setCredentials('', refreshToken);
+      const tokens = await googleFitService.refreshAccessToken();
       
       await prisma.wearableDeviceConfig.update({
         where: { id: deviceConfigId },

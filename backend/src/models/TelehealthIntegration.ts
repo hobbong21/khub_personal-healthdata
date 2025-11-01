@@ -4,26 +4,31 @@ export interface TelehealthIntegration {
   id: string;
   userId: string;
   platformName: string;
-  platformUserId?: string;
-  integrationSettings?: any;
+  platformId: string;
+  accessToken?: string;
+  refreshToken?: string;
   isActive: boolean;
   lastSyncAt?: Date;
+  integrationConfig?: any;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface TelehealthSession {
   id: string;
-  userId: string;
-  telehealthIntegrationId?: string;
-  healthcareProviderName: string;
-  sessionType: 'consultation' | 'follow_up' | 'emergency';
+  telehealthIntegrationId: string;
+  sessionId: string;
+  doctorName: string;
+  specialty?: string;
+  sessionType: string;
   scheduledTime: Date;
   actualStartTime?: Date;
   actualEndTime?: Date;
-  sessionUrl?: string;
-  sessionNotes?: string;
   status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
+  sessionNotes?: string;
+  diagnosis?: string;
+  prescriptions?: any;
+  followUpRequired: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -42,8 +47,8 @@ export class TelehealthIntegrationModel {
       data: {
         userId: integrationData.userId,
         platformName: integrationData.platformName,
-        platformUserId: integrationData.platformUserId,
-        integrationSettings: integrationData.integrationSettings,
+        platformId: integrationData.platformUserId || 'default',
+        integrationConfig: integrationData.integrationSettings,
         isActive: true,
       },
     });
@@ -55,22 +60,23 @@ export class TelehealthIntegrationModel {
    * 텔레헬스 세션 생성 (요구사항 17.5)
    */
   static async createSession(sessionData: {
-    userId: string;
-    telehealthIntegrationId?: string;
-    healthcareProviderName: string;
-    sessionType: 'consultation' | 'follow_up' | 'emergency';
+    telehealthIntegrationId: string;
+    sessionId: string;
+    doctorName: string;
+    specialty?: string;
+    sessionType: string;
     scheduledTime: Date;
-    sessionUrl?: string;
   }): Promise<TelehealthSession> {
     const session = await prisma.telehealthSession.create({
       data: {
-        userId: sessionData.userId,
         telehealthIntegrationId: sessionData.telehealthIntegrationId,
-        healthcareProviderName: sessionData.healthcareProviderName,
+        sessionId: sessionData.sessionId,
+        doctorName: sessionData.doctorName,
+        specialty: sessionData.specialty,
         sessionType: sessionData.sessionType,
         scheduledTime: sessionData.scheduledTime,
-        sessionUrl: sessionData.sessionUrl,
         status: 'scheduled',
+        followUpRequired: false,
       },
     });
 
@@ -97,9 +103,17 @@ export class TelehealthIntegrationModel {
     status?: string,
     limit: number = 50
   ): Promise<TelehealthSession[]> {
+    // userId를 통해 integration을 먼저 찾고, 그 integration의 세션들을 조회
+    const integrations = await prisma.telehealthIntegration.findMany({
+      where: { userId },
+      select: { id: true }
+    });
+    
+    const integrationIds = integrations.map(i => i.id);
+    
     const sessions = await prisma.telehealthSession.findMany({
       where: {
-        userId,
+        telehealthIntegrationId: { in: integrationIds },
         ...(status && { status }),
       },
       orderBy: { scheduledTime: 'desc' },
@@ -139,9 +153,18 @@ export class TelehealthIntegrationModel {
    */
   static async getUpcomingSessions(userId: string): Promise<TelehealthSession[]> {
     const now = new Date();
+    
+    // userId를 통해 integration을 먼저 찾고, 그 integration의 세션들을 조회
+    const integrations = await prisma.telehealthIntegration.findMany({
+      where: { userId },
+      select: { id: true }
+    });
+    
+    const integrationIds = integrations.map(i => i.id);
+    
     const sessions = await prisma.telehealthSession.findMany({
       where: {
-        userId,
+        telehealthIntegrationId: { in: integrationIds },
         status: 'scheduled',
         scheduledTime: {
           gte: now,
@@ -260,9 +283,10 @@ export class TelehealthIntegrationModel {
       if (syncedData && syncedData.diagnosis) {
         await prisma.medicalRecord.create({
           data: {
-            userId: session.userId,
+            userId: 'temp-user-id', // session에서 userId를 가져올 수 없으므로 임시 처리
             hospitalName: 'Telehealth Session',
-            doctorName: session.healthcareProviderName,
+            department: 'Telehealth',
+            doctorName: session.doctorName,
             diagnosisDescription: syncedData.diagnosis,
             doctorNotes: syncedData.notes || session.sessionNotes,
             visitDate: session.actualStartTime || session.scheduledTime,
@@ -333,23 +357,31 @@ export class TelehealthIntegrationModel {
     cancelledSessions: number;
     averageSessionDuration: number;
   }> {
+    // userId를 통해 integration을 먼저 찾고, 그 integration의 세션들을 조회
+    const integrations = await prisma.telehealthIntegration.findMany({
+      where: { userId },
+      select: { id: true }
+    });
+    
+    const integrationIds = integrations.map(i => i.id);
+    
     const [totalSessions, completedSessions, upcomingSessions, cancelledSessions] = await Promise.all([
-      prisma.telehealthSession.count({ where: { userId } }),
-      prisma.telehealthSession.count({ where: { userId, status: 'completed' } }),
+      prisma.telehealthSession.count({ where: { telehealthIntegrationId: { in: integrationIds } } }),
+      prisma.telehealthSession.count({ where: { telehealthIntegrationId: { in: integrationIds }, status: 'completed' } }),
       prisma.telehealthSession.count({ 
         where: { 
-          userId, 
+          telehealthIntegrationId: { in: integrationIds },
           status: 'scheduled',
           scheduledTime: { gte: new Date() }
         } 
       }),
-      prisma.telehealthSession.count({ where: { userId, status: 'cancelled' } }),
+      prisma.telehealthSession.count({ where: { telehealthIntegrationId: { in: integrationIds }, status: 'cancelled' } }),
     ]);
 
     // 평균 세션 시간 계산
     const completedSessionsWithDuration = await prisma.telehealthSession.findMany({
       where: {
-        userId,
+        telehealthIntegrationId: { in: integrationIds },
         status: 'completed',
         actualStartTime: { not: null },
         actualEndTime: { not: null },

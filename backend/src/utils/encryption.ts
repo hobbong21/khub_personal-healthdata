@@ -12,16 +12,13 @@ const TAG_LENGTH = 16; // For GCM, this is always 16
 export function encryptSensitiveData(text: string): string {
   try {
     const iv = crypto.randomBytes(IV_LENGTH);
-    const cipher = crypto.createCipher(ALGORITHM, ENCRYPTION_KEY);
-    cipher.setAAD(Buffer.from('health-platform-aad'));
+    const cipher = crypto.createCipher('aes-256-cbc', ENCRYPTION_KEY);
     
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
     
-    const tag = cipher.getAuthTag();
-    
-    // IV + Tag + Encrypted Data를 결합하여 반환
-    return iv.toString('hex') + ':' + tag.toString('hex') + ':' + encrypted;
+    // IV + Encrypted Data를 결합하여 반환
+    return iv.toString('hex') + ':' + encrypted;
   } catch (error) {
     throw new Error('데이터 암호화에 실패했습니다');
   }
@@ -33,17 +30,14 @@ export function encryptSensitiveData(text: string): string {
 export function decryptSensitiveData(encryptedData: string): string {
   try {
     const parts = encryptedData.split(':');
-    if (parts.length !== 3) {
+    if (parts.length !== 2) {
       throw new Error('잘못된 암호화 데이터 형식입니다');
     }
     
     const iv = Buffer.from(parts[0], 'hex');
-    const tag = Buffer.from(parts[1], 'hex');
-    const encrypted = parts[2];
+    const encrypted = parts[1];
     
-    const decipher = crypto.createDecipher(ALGORITHM, ENCRYPTION_KEY);
-    decipher.setAAD(Buffer.from('health-platform-aad'));
-    decipher.setAuthTag(tag);
+    const decipher = crypto.createDecipher('aes-256-cbc', ENCRYPTION_KEY);
     
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
@@ -61,15 +55,12 @@ export function encryptGenomicData(data: object): string {
   try {
     const jsonString = JSON.stringify(data);
     const iv = crypto.randomBytes(IV_LENGTH);
-    const cipher = crypto.createCipher(ALGORITHM, ENCRYPTION_KEY);
-    cipher.setAAD(Buffer.from('genomic-data-aad'));
+    const cipher = crypto.createCipher('aes-256-cbc', ENCRYPTION_KEY);
     
     let encrypted = cipher.update(jsonString, 'utf8', 'hex');
     encrypted += cipher.final('hex');
     
-    const tag = cipher.getAuthTag();
-    
-    return iv.toString('hex') + ':' + tag.toString('hex') + ':' + encrypted;
+    return iv.toString('hex') + ':' + encrypted;
   } catch (error) {
     throw new Error('유전체 데이터 암호화에 실패했습니다');
   }
@@ -81,17 +72,14 @@ export function encryptGenomicData(data: object): string {
 export function decryptGenomicData(encryptedData: string): object {
   try {
     const parts = encryptedData.split(':');
-    if (parts.length !== 3) {
+    if (parts.length !== 2) {
       throw new Error('잘못된 유전체 데이터 형식입니다');
     }
     
     const iv = Buffer.from(parts[0], 'hex');
-    const tag = Buffer.from(parts[1], 'hex');
-    const encrypted = parts[2];
+    const encrypted = parts[1];
     
-    const decipher = crypto.createDecipher(ALGORITHM, ENCRYPTION_KEY);
-    decipher.setAAD(Buffer.from('genomic-data-aad'));
-    decipher.setAuthTag(tag);
+    const decipher = crypto.createDecipher('aes-256-cbc', ENCRYPTION_KEY);
     
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');

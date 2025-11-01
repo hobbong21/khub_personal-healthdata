@@ -334,26 +334,31 @@ export function requireWhitelistedIP(allowedIPs: string[]) {
  */
 export function checkSessionTimeout(timeoutMinutes: number = 30) {
   return (req: Request, res: Response, next: NextFunction): void => {
-    const lastActivity = req.session?.lastActivity;
-    const now = Date.now();
-    
-    if (lastActivity && (now - lastActivity) > (timeoutMinutes * 60 * 1000)) {
-      auditLog(req, 'SESSION_TIMEOUT', { 
-        userId: req.user?.id,
-        lastActivity: new Date(lastActivity).toISOString()
-      });
-      res.status(401).json({
-        error: {
-          code: 'SESSION_EXPIRED',
-          message: '세션이 만료되었습니다. 다시 로그인해주세요.'
+    // JWT 기반 인증에서는 토큰 만료 시간으로 세션 관리
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      try {
+        // JWT 토큰 검증 로직 (실제 구현에서는 jwt.verify 사용)
+        const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+        const now = Math.floor(Date.now() / 1000);
+        
+        if (payload.exp && payload.exp < now) {
+          auditLog(req, 'TOKEN_EXPIRED', { 
+            userId: req.user?.id,
+            expiredAt: new Date(payload.exp * 1000).toISOString()
+          });
+          res.status(401).json({
+            error: {
+              code: 'TOKEN_EXPIRED',
+              message: '토큰이 만료되었습니다. 다시 로그인해주세요.'
+            }
+          });
+          return;
         }
-      });
-      return;
-    }
-
-    // 세션 활동 시간 업데이트
-    if (req.session) {
-      req.session.lastActivity = now;
+      } catch (error) {
+        // 토큰 파싱 실패 시 무시하고 다음 미들웨어로
+      }
     }
 
     next();
@@ -404,9 +409,10 @@ export function validateDataIntegrity() {
   };
 }
 
-// Express 세션 타입 확장
-declare module 'express-session' {
-  interface SessionData {
-    lastActivity?: number;
-  }
+// JWT 토큰 페이로드 타입 정의
+interface JWTPayload {
+  sub: string;
+  iat: number;
+  exp: number;
+  userId: string;
 }

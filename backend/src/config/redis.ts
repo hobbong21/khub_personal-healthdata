@@ -21,7 +21,6 @@ class RedisService {
         url: process.env.REDIS_URL || 'redis://localhost:6379',
         socket: {
           connectTimeout: 10000,
-          lazyConnect: true,
           keepAlive: 30000,
           noDelay: true,
         },
@@ -379,21 +378,34 @@ class RedisService {
     }
 
     try {
-      // 만료된 키 정리를 위한 Lua 스크립트
-      const script = `
-        local keys = redis.call('keys', '*')
-        local expired = 0
-        for i=1,#keys do
-          if redis.call('ttl', keys[i]) == -1 then
-            redis.call('del', keys[i])
-            expired = expired + 1
-          end
-        end
-        return expired
-      `;
+      // SCAN을 사용하여 안전하게 만료된 키 정리
+      let cursor = 0;
+      let expiredCount = 0;
       
-      const expiredCount = await this.client!.eval(script, { numberOfKeys: 0 });
-      console.log(`Cache memory optimization completed. Removed ${expiredCount} expired keys.`);
+      do {
+        const result = await this.client!.scan(cursor, {
+          COUNT: 100
+        });
+        
+        cursor = result.cursor;
+        const keys = result.keys;
+        
+        // 각 키의 TTL 확인하고 만료된 키 삭제
+        for (const key of keys) {
+          try {
+            const ttl = await this.client!.ttl(key);
+            if (ttl === -1) { // TTL이 설정되지 않은 키
+              // 필요에 따라 기본 TTL 설정 또는 삭제
+              await this.client!.expire(key, 3600); // 1시간 기본 TTL 설정
+              expiredCount++;
+            }
+          } catch (keyError) {
+            console.warn(`Error processing key ${key}:`, keyError);
+          }
+        }
+      } while (cursor !== 0);
+      
+      console.log(`Cache memory optimization completed. Processed ${expiredCount} keys.`);
     } catch (error) {
       console.error('Cache memory optimization error:', error);
     }

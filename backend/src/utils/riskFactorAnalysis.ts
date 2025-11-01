@@ -94,7 +94,7 @@ export class RiskFactorIdentifier {
         timeToImpact: 'immediate',
       });
     } else if (data.smokingStatus === 'never') {
-      protectiveFactors.push({
+      protective.push({
         id: 'never_smoked',
         name: 'Never Smoked',
         category: 'lifestyle',
@@ -126,7 +126,7 @@ export class RiskFactorIdentifier {
         timeToImpact: 'short_term',
       });
     } else if (data.exerciseFrequency >= 5) {
-      protectiveFactors.push({
+      protective.push({
         id: 'regular_exercise',
         name: 'Regular Exercise',
         category: 'lifestyle',
@@ -158,7 +158,7 @@ export class RiskFactorIdentifier {
         timeToImpact: 'medium_term',
       });
     } else if (data.bmi >= 18.5 && data.bmi <= 24.9) {
-      protectiveFactors.push({
+      protective.push({
         id: 'healthy_weight',
         name: 'Healthy Weight',
         category: 'lifestyle',

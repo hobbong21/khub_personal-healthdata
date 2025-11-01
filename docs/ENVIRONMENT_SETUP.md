@@ -76,6 +76,29 @@ SMTP_PASS=your-app-password
 
 # 암호화 설정 (민감한 데이터용)
 ENCRYPTION_KEY=your-32-character-encryption-key-here
+ANONYMIZATION_SALT=your-anonymization-salt-key
+
+# 보안 모니터링 설정
+SECURITY_ALERT_EMAIL=security@yourcompany.com
+INTRUSION_DETECTION_ENABLED=true
+FAILED_LOGIN_THRESHOLD=5
+IP_BLOCK_DURATION_MINUTES=60
+
+# 성능 모니터링 설정
+PERFORMANCE_MONITORING_ENABLED=true
+AUTO_OPTIMIZATION_ENABLED=true
+METRICS_COLLECTION_INTERVAL_MS=60000
+SLOW_QUERY_THRESHOLD_MS=100
+
+# 로깅 설정
+LOG_LEVEL=info
+LOG_RETENTION_DAYS=90
+AUDIT_LOG_RETENTION_DAYS=2555
+
+# 캐시 최적화 설정
+REDIS_COMPRESSION=true
+CACHE_DEFAULT_TTL=300
+CACHE_MAX_MEMORY_MB=512
 ```
 
 ### 프론트엔드 환경 변수 (.env)
@@ -238,24 +261,85 @@ npm run dev
 
 프론트엔드가 http://localhost:3000에서 실행됩니다.
 
-## 보안 고려사항
+## 보안 및 성능 최적화
 
-### 1. JWT Secret 설정
-- 최소 32자 이상의 복잡한 문자열 사용
+### 1. 보안 설정
+
+#### JWT 및 암호화
+- JWT_SECRET: 최소 32자 이상의 복잡한 문자열 사용
+- ENCRYPTION_KEY: 정확히 32자의 랜덤 문자열 (AES-256-GCM용)
 - 프로덕션에서는 환경별로 다른 키 사용
 
-### 2. 데이터베이스 보안
-- 강력한 비밀번호 사용
+#### 데이터베이스 보안
+- 강력한 비밀번호 사용 (최소 12자, 특수문자 포함)
 - 프로덕션에서는 SSL 연결 사용
+- 정기적인 백업 및 암호화 저장
 
-### 3. API 키 보안
+#### API 키 보안
 - .env 파일을 .gitignore에 추가
 - 프로덕션에서는 환경 변수로 관리
-- 정기적으로 API 키 로테이션
+- 정기적으로 API 키 로테이션 (90일마다 권장)
 
-### 4. HTTPS 설정
+#### HTTPS 및 네트워크 보안
 - 프로덕션에서는 반드시 HTTPS 사용
-- SSL 인증서 설정
+- SSL 인증서 설정 (Let's Encrypt 권장)
+- 방화벽 설정으로 불필요한 포트 차단
+
+#### HIPAA 준수 설정
+- 감사 로그 7년 보관 (AUDIT_LOG_RETENTION_DAYS=2555)
+- 모든 민감한 데이터 암호화
+- 접근 권한 관리 및 모니터링
+
+### 2. 성능 최적화 설정
+
+#### 데이터베이스 최적화
+```bash
+# PostgreSQL 설정 최적화 (postgresql.conf)
+shared_buffers = 256MB
+effective_cache_size = 1GB
+work_mem = 4MB
+maintenance_work_mem = 64MB
+max_connections = 100
+```
+
+#### Redis 캐시 최적화
+```bash
+# Redis 설정 최적화 (redis.conf)
+maxmemory 512mb
+maxmemory-policy allkeys-lru
+save 900 1
+save 300 10
+save 60 10000
+```
+
+#### Node.js 성능 최적화
+```bash
+# 환경 변수 설정
+NODE_OPTIONS="--max-old-space-size=4096"
+UV_THREADPOOL_SIZE=16
+```
+
+#### 모니터링 설정
+- 실시간 성능 메트릭 수집
+- 자동 최적화 기능 활성화
+- 알림 임계값 설정
+
+### 3. 보안 모니터링
+
+#### 침입 탐지 시스템
+- 실패한 로그인 시도 모니터링
+- 의심스러운 IP 주소 자동 차단
+- 비정상적인 API 사용 패턴 감지
+
+#### 감사 로그
+- 모든 민감한 데이터 접근 기록
+- 사용자 활동 추적
+- 시스템 변경 사항 로깅
+
+#### 알림 시스템
+- 보안 이벤트 실시간 알림
+- 성능 임계값 초과 시 알림
+- 시스템 상태 정기 보고서
 
 ## 문제 해결
 

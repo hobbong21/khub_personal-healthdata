@@ -30,6 +30,7 @@ import researchParticipationRoutes from './routes/researchParticipation';
 import incentiveManagementRoutes from './routes/incentiveManagement';
 import performanceRoutes from './routes/performance';
 import monitoringRoutes from './routes/monitoring';
+import securityRoutes from './routes/security';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -43,20 +44,33 @@ import {
   detectSecurityEvents,
   monitorRequestSize
 } from './middleware/monitoring';
+import {
+  securityHeaders,
+  generalRateLimit,
+  authRateLimit,
+  sensitiveDataRateLimit,
+  validateDataIntegrity,
+  checkSessionTimeout
+} from './middleware/security';
 
 // Import Redis service
 import { redisService } from './config/redis';
 import { monitoringService } from './services/monitoringService';
 import { loggingService } from './services/loggingService';
+import { securityAuditService } from './services/securityAuditService';
+import { performanceOptimizationService } from './services/performanceOptimizationService';
 
 // Load environment variables
 dotenv.config();
+
+// Import environment validation
+import { initializeEnvironment } from './utils/envValidation';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Security middleware
-app.use(helmet());
+app.use(securityHeaders);
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? ['https://your-domain.com'] 
@@ -65,12 +79,11 @@ app.use(cors({
 }));
 
 // Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
-});
-app.use('/api', limiter);
+app.use('/api', generalRateLimit);
+app.use('/api/auth', authRateLimit);
+app.use('/api/health', sensitiveDataRateLimit);
+app.use('/api/medical', sensitiveDataRateLimit);
+app.use('/api/genomics', sensitiveDataRateLimit);
 
 // General middleware
 app.use(compression());
@@ -85,6 +98,8 @@ app.use(logAPIRequest);
 app.use(trackUserActivity);
 app.use(detectSecurityEvents);
 app.use(monitorRequestSize());
+app.use(validateDataIntegrity());
+app.use(checkSessionTimeout());
 
 // Health check endpoint
 app.get('/health', (_req, res) => {
@@ -119,6 +134,7 @@ app.use('/api/research', researchParticipationRoutes);
 app.use('/api/incentives', incentiveManagementRoutes);
 app.use('/api/performance', performanceRoutes);
 app.use('/api/monitoring', monitoringRoutes);
+app.use('/api/security', securityRoutes);
 
 // Error handling middleware
 app.use(notFound);
@@ -127,6 +143,11 @@ app.use(errorHandler);
 
 // Initialize services
 async function initializeServices() {
+  // 환경 변수 검증 및 초기화
+  if (!initializeEnvironment()) {
+    throw new Error('Environment validation failed. Please check your configuration.');
+  }
+
   try {
     await redisService.connect();
     console.log('✅ Redis connection initialized');
@@ -141,6 +162,32 @@ async function initializeServices() {
   } catch (error) {
     console.warn('⚠️  Monitoring service failed to start:', error);
   }
+
+  // Initialize security audit service
+  try {
+    await securityAuditService.recordSecurityEvent(
+      'SYSTEM_STARTUP',
+      'low',
+      { 
+        environment: process.env.NODE_ENV,
+        port: PORT,
+        timestamp: new Date().toISOString()
+      }
+    );
+    console.log('✅ Security audit service initialized');
+  } catch (error) {
+    console.warn('⚠️  Security audit service initialization failed:', error);
+  }
+
+  // Schedule periodic performance optimization
+  setInterval(async () => {
+    try {
+      await performanceOptimizationService.generateOptimizationReport();
+      console.log('📊 Periodic performance optimization completed');
+    } catch (error) {
+      console.error('Performance optimization error:', error);
+    }
+  }, 30 * 60 * 1000); // 30분마다 실행
 
   // Log application startup
   loggingService.info('Health Platform application started', {
@@ -167,6 +214,11 @@ process.on('SIGTERM', async () => {
   // Stop monitoring
   monitoringService.stopMonitoring();
   
+  // Cleanup services
+  monitoringService.cleanup();
+  securityAuditService.cleanup();
+  performanceOptimizationService.cleanup();
+  
   // Disconnect services
   await redisService.disconnect();
   loggingService.close();
@@ -180,6 +232,11 @@ process.on('SIGINT', async () => {
   
   // Stop monitoring
   monitoringService.stopMonitoring();
+  
+  // Cleanup services
+  monitoringService.cleanup();
+  securityAuditService.cleanup();
+  performanceOptimizationService.cleanup();
   
   // Disconnect services
   await redisService.disconnect();

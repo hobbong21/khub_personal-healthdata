@@ -1,6 +1,6 @@
 import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
-import { WearableDataType, WearableDataNormalized, GoogleFitData, WearableSyncResponse } from '../types/wearable';
+import { WearableDataType, WearableDataNormalized, WearableSyncResponse } from '../types/wearable';
 import { GoogleFitDataNormalizer } from '../utils/googleFitDataNormalizer';
 
 /**
@@ -127,8 +127,6 @@ export class GoogleFitService {
   ): Promise<WearableDataNormalized[]> {
     try {
       const dataTypeName = this.mapDataTypeToGoogleFit(dataType);
-      const startTimeNanos = (startTime.getTime() * 1000000).toString();
-      const endTimeNanos = (endTime.getTime() * 1000000).toString();
 
       const response = await this.fitness.users.dataset.aggregate({
         userId: 'me',
@@ -181,7 +179,7 @@ export class GoogleFitService {
       deviceConfigId: '', // 호출하는 곳에서 설정
       syncedDataCount: syncedData.length,
       lastSyncAt: new Date(),
-      errors: errors.length > 0 ? errors : undefined,
+      errors: errors.length > 0 ? errors : [],
       dataTypesProcessed: processedTypes,
     };
   }

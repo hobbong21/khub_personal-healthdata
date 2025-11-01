@@ -3,16 +3,16 @@ import prisma from '../config/database';
 export interface ResearchParticipation {
   id: string;
   userId: string;
-  researchProjectId: string;
-  researchTitle: string;
-  researchInstitution?: string;
-  participationType: 'data_sharing' | 'clinical_trial' | 'survey';
-  consentGiven: boolean;
-  consentDate?: Date;
-  participationStartDate?: Date;
-  participationEndDate?: Date;
+  studyId: string;
+  studyTitle: string;
+  studyType: string;
+  participationDate: Date;
   status: 'pending' | 'active' | 'completed' | 'withdrawn';
-  incentivePoints: number;
+  consentGiven: boolean;
+  dataShared?: any;
+  incentivesEarned: number;
+  completionDate?: Date;
+  withdrawalReason?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -42,8 +42,12 @@ export interface UserIncentive {
   pointsEarned: number;
   pointsRedeemed: number;
   description: string;
-  referenceId?: string;
-  earnedAt: Date;
+  earnedDate: Date;
+  redeemedDate?: Date;
+  expiresAt?: Date;
+  status: string;
+  metadata?: any;
+  createdAt: Date;
 }
 
 export class ResearchParticipationModel {
@@ -323,14 +327,13 @@ export class ResearchParticipationModel {
     const participation = await prisma.researchParticipation.create({
       data: {
         userId,
-        researchProjectId,
-        researchTitle: project.title,
-        researchInstitution: project.institution,
-        participationType: project.participationType,
+        studyId: researchProjectId,
+        studyTitle: project.title,
+        studyType: project.participationType,
+        participationDate: new Date(),
         consentGiven,
-        consentDate: consentGiven ? new Date() : undefined,
         status: consentGiven ? 'pending' : 'pending',
-        incentivePoints: 0,
+        incentivesEarned: 0,
       },
     });
 
@@ -435,10 +438,10 @@ export class ResearchParticipationModel {
         ],
       },
       incentivesEarned: {
-        totalPoints: participation.incentivePoints,
+        totalPoints: participation.incentivesEarned,
         breakdown: [
-          { type: '참여 시작', points: 100, date: participation.participationStartDate },
-          { type: '데이터 기여', points: participation.incentivePoints - 100, date: new Date() },
+          { type: '참여 시작', points: 100, date: participation.participationDate },
+          { type: '데이터 기여', points: participation.incentivesEarned - 100, date: new Date() },
         ],
       },
     };
@@ -496,7 +499,8 @@ export class ResearchParticipationModel {
         pointsEarned: points,
         pointsRedeemed: 0,
         description,
-        referenceId,
+        earnedDate: new Date(),
+        status: 'active',
       },
     });
 
@@ -514,7 +518,7 @@ export class ResearchParticipationModel {
   }> {
     const incentives = await prisma.userIncentive.findMany({
       where: { userId },
-      orderBy: { earnedAt: 'desc' },
+      orderBy: { earnedDate: 'desc' },
     });
 
     const totalPoints = incentives.reduce((sum, incentive) => sum + incentive.pointsEarned, 0);
@@ -556,6 +560,9 @@ export class ResearchParticipationModel {
         pointsEarned: 0,
         pointsRedeemed: points,
         description,
+        earnedDate: new Date(),
+        redeemedDate: new Date(),
+        status: 'redeemed',
       },
     });
 
@@ -588,7 +595,7 @@ export class ResearchParticipationModel {
       prisma.researchParticipation.count({ where: { status: 'active' } }),
       prisma.researchParticipation.count({ where: { status: 'completed' } }),
       prisma.researchParticipation.findMany({
-        select: { participationType: true, createdAt: true },
+        select: { studyType: true, createdAt: true },
       }),
       prisma.userIncentive.findMany({
         select: { pointsEarned: true },
@@ -597,7 +604,7 @@ export class ResearchParticipationModel {
 
     // 참여 타입별 통계
     const participationByType = allParticipations.reduce((acc, participation) => {
-      acc[participation.participationType] = (acc[participation.participationType] || 0) + 1;
+      acc[participation.studyType] = (acc[participation.studyType] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 

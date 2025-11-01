@@ -731,3 +731,160 @@ model DataRetentionPolicy {
   @@index([isActive])
   @@map("data_retention_policies")
 }
+
+// Remote Monitoring Models
+model RemoteMonitoringSession {
+  id                String   @id @default(cuid())
+  userId            String   @map("user_id")
+  sessionType       String   @map("session_type")
+  status            String   @default("active")
+  startTime         DateTime @map("start_time")
+  endTime           DateTime? @map("end_time")
+  monitoringDevices Json?    @map("monitoring_devices")
+  alertSettings     Json?    @map("alert_settings")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  
+  healthAlerts      HealthAlert[]
+  realTimeHealthData RealTimeHealthData[]
+  
+  @@index([userId, status])
+  @@map("remote_monitoring_sessions")
+}
+
+model RealTimeHealthData {
+  id                        String   @id @default(cuid())
+  remoteMonitoringSessionId String   @map("remote_monitoring_session_id")
+  dataType                  String   @map("data_type")
+  value                     Json
+  unit                      String
+  timestamp                 DateTime
+  deviceId                  String?  @map("device_id")
+  isAbnormal                Boolean  @default(false) @map("is_abnormal")
+  createdAt                 DateTime @default(now()) @map("created_at")
+  
+  session RemoteMonitoringSession @relation(fields: [remoteMonitoringSessionId], references: [id], onDelete: Cascade)
+  
+  @@index([remoteMonitoringSessionId, timestamp])
+  @@index([dataType, timestamp])
+  @@map("real_time_health_data")
+}
+
+model HealthAlert {
+  id                        String   @id @default(cuid())
+  remoteMonitoringSessionId String   @map("remote_monitoring_session_id")
+  alertType                 String   @map("alert_type")
+  severity                  String
+  message                   String
+  triggerData               Json?    @map("trigger_data")
+  isResolved                Boolean  @default(false) @map("is_resolved")
+  resolvedAt                DateTime? @map("resolved_at")
+  createdAt                 DateTime @default(now()) @map("created_at")
+  
+  session RemoteMonitoringSession @relation(fields: [remoteMonitoringSessionId], references: [id], onDelete: Cascade)
+  
+  @@index([remoteMonitoringSessionId, isResolved])
+  @@index([severity, createdAt])
+  @@map("health_alerts")
+}
+
+model HealthcareDataShare {
+  id               String   @id @default(cuid())
+  userId           String   @map("user_id")
+  recipientType    String   @map("recipient_type")
+  recipientId      String   @map("recipient_id")
+  dataTypes        Json     @map("data_types")
+  permissions      Json
+  expiresAt        DateTime? @map("expires_at")
+  isActive         Boolean  @default(true) @map("is_active")
+  createdAt        DateTime @default(now()) @map("created_at")
+  
+  @@index([userId, isActive])
+  @@map("healthcare_data_shares")
+}
+
+// Telehealth Models
+model TelehealthIntegration {
+  id                String   @id @default(cuid())
+  userId            String   @map("user_id")
+  platformName      String   @map("platform_name")
+  platformId        String   @map("platform_id")
+  accessToken       String?  @map("access_token")
+  refreshToken      String?  @map("refresh_token")
+  isActive          Boolean  @default(true) @map("is_active")
+  lastSyncAt        DateTime? @map("last_sync_at")
+  integrationConfig Json?    @map("integration_config")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  
+  sessions TelehealthSession[]
+  
+  @@index([userId, platformName])
+  @@map("telehealth_integrations")
+}
+
+model TelehealthSession {
+  id                      String   @id @default(cuid())
+  telehealthIntegrationId String   @map("telehealth_integration_id")
+  sessionId               String   @map("session_id")
+  doctorName              String   @map("doctor_name")
+  specialty               String?
+  sessionType             String   @map("session_type")
+  scheduledTime           DateTime @map("scheduled_time")
+  actualStartTime         DateTime? @map("actual_start_time")
+  actualEndTime           DateTime? @map("actual_end_time")
+  status                  String   @default("scheduled")
+  sessionNotes            String?  @map("session_notes")
+  diagnosis               String?
+  prescriptions           Json?
+  followUpRequired        Boolean  @default(false) @map("follow_up_required")
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+  
+  integration TelehealthIntegration @relation(fields: [telehealthIntegrationId], references: [id], onDelete: Cascade)
+  
+  @@index([telehealthIntegrationId, scheduledTime])
+  @@index([status])
+  @@map("telehealth_sessions")
+}
+
+// Research Participation Models
+model ResearchParticipation {
+  id                String   @id @default(cuid())
+  userId            String   @map("user_id")
+  studyId           String   @map("study_id")
+  studyTitle        String   @map("study_title")
+  studyType         String   @map("study_type")
+  participationDate DateTime @map("participation_date")
+  status            String   @default("active")
+  consentGiven      Boolean  @default(false) @map("consent_given")
+  dataShared        Json?    @map("data_shared")
+  incentivesEarned  Float    @default(0) @map("incentives_earned")
+  completionDate    DateTime? @map("completion_date")
+  withdrawalReason  String?  @map("withdrawal_reason")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  
+  @@index([userId, status])
+  @@index([studyId])
+  @@map("research_participations")
+}
+
+model UserIncentive {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  incentiveType   String   @map("incentive_type")
+  description     String
+  pointsEarned    Float    @map("points_earned")
+  pointsRedeemed  Float    @default(0) @map("points_redeemed")
+  earnedDate      DateTime @map("earned_date")
+  redeemedDate    DateTime? @map("redeemed_date")
+  expiresAt       DateTime? @map("expires_at")
+  status          String   @default("active")
+  metadata        Json?
+  createdAt       DateTime @default(now()) @map("created_at")
+  
+  @@index([userId, status])
+  @@index([incentiveType])
+  @@map("user_incentives")
+}

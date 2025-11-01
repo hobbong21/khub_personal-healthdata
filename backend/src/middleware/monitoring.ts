@@ -17,7 +17,7 @@ declare global {
  * 요청 ID 생성 미들웨어
  */
 export function generateRequestId(req: Request, res: Response, next: NextFunction): void {
-  req.requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  req.requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   res.setHeader('X-Request-ID', req.requestId);
   next();
 }
@@ -127,7 +127,7 @@ export function trackUserActivity(req: Request, res: Response, next: NextFunctio
     if (!isSensitive) {
       monitoringService.trackUserBehavior({
         userId: req.user.id,
-        sessionId: req.sessionID || 'unknown',
+        sessionId: req.requestId || 'unknown',
         event,
         page,
         userAgent: req.get('User-Agent'),
