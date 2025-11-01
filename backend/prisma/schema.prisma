@@ -551,3 +551,183 @@ model WearableDataTemp {
   @@index([timestamp])
   @@map("wearable_data_temp")
 }
+
+// Security and Audit Models
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  timestamp DateTime
+  action    String
+  userId    String?  @map("user_id")
+  ip        String
+  userAgent String?  @map("user_agent")
+  path      String
+  method    String
+  details   String?  // JSON string
+  hash      String
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  @@index([timestamp])
+  @@index([userId])
+  @@index([action])
+  @@index([ip])
+  @@index([hash])
+  @@map("audit_logs")
+}
+
+model UserRole {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  role      String    @default("patient")
+  grantedBy String?   @map("granted_by")
+  grantedAt DateTime  @default(now()) @map("granted_at")
+  expiresAt DateTime? @map("expires_at")
+  isActive  Boolean   @default(true) @map("is_active")
+  
+  @@unique([userId, role])
+  @@map("user_roles")
+}
+
+model UserSession {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  sessionToken String   @unique @map("session_token")
+  ipAddress    String   @map("ip_address")
+  userAgent    String?  @map("user_agent")
+  createdAt    DateTime @default(now()) @map("created_at")
+  lastActivity DateTime @default(now()) @map("last_activity")
+  expiresAt    DateTime @map("expires_at")
+  isActive     Boolean  @default(true) @map("is_active")
+  
+  @@index([userId])
+  @@index([sessionToken])
+  @@index([expiresAt])
+  @@map("user_sessions")
+}
+
+model DataAccessLog {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  resourceType String   @map("resource_type")
+  resourceId   String   @map("resource_id")
+  accessType   String   @map("access_type")
+  ipAddress    String   @map("ip_address")
+  userAgent    String?  @map("user_agent")
+  accessedAt   DateTime @default(now()) @map("accessed_at")
+  dataHash     String?  @map("data_hash")
+  purpose      String?
+  
+  @@index([userId])
+  @@index([resourceType, resourceId])
+  @@index([accessedAt])
+  @@map("data_access_logs")
+}
+
+model SecurityEvent {
+  id          String    @id @default(cuid())
+  eventType   String    @map("event_type")
+  severity    String    @default("medium")
+  userId      String?   @map("user_id")
+  ipAddress   String    @map("ip_address")
+  userAgent   String?   @map("user_agent")
+  description String
+  details     Json?
+  resolved    Boolean   @default(false)
+  resolvedBy  String?   @map("resolved_by")
+  resolvedAt  DateTime? @map("resolved_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  
+  @@index([eventType])
+  @@index([severity])
+  @@index([resolved])
+  @@index([createdAt])
+  @@map("security_events")
+}
+
+model EncryptionKey {
+  id        String    @id @default(cuid())
+  keyName   String    @unique @map("key_name")
+  keyVersion Int      @default(1) @map("key_version")
+  algorithm String    @default("aes-256-gcm")
+  keyHash   String    @map("key_hash")
+  createdAt DateTime  @default(now()) @map("created_at")
+  expiresAt DateTime? @map("expires_at")
+  isActive  Boolean   @default(true) @map("is_active")
+  createdBy String?   @map("created_by")
+  
+  @@index([keyName])
+  @@index([isActive])
+  @@map("encryption_keys")
+}
+
+model BackupLog {
+  id             String    @id @default(cuid())
+  backupType     String    @map("backup_type")
+  tableName      String?   @map("table_name")
+  backupSize     BigInt?   @map("backup_size")
+  backupLocation String    @map("backup_location")
+  backupHash     String    @map("backup_hash")
+  startedAt      DateTime  @map("started_at")
+  completedAt    DateTime? @map("completed_at")
+  status         String    @default("in_progress")
+  errorMessage   String?   @map("error_message")
+  createdBy      String?   @map("created_by")
+  
+  @@index([backupType])
+  @@index([status])
+  @@index([startedAt])
+  @@map("backup_logs")
+}
+
+model ComplianceReport {
+  id                String   @id @default(cuid())
+  reportType        String   @map("report_type")
+  reportPeriodStart DateTime @map("report_period_start")
+  reportPeriodEnd   DateTime @map("report_period_end")
+  generatedBy       String   @map("generated_by")
+  generatedAt       DateTime @default(now()) @map("generated_at")
+  reportData        Json     @map("report_data")
+  reportHash        String   @map("report_hash")
+  filePath          String?  @map("file_path")
+  status            String   @default("generated")
+  
+  @@index([reportType])
+  @@index([reportPeriodStart, reportPeriodEnd])
+  @@index([generatedAt])
+  @@map("compliance_reports")
+}
+
+model UserConsent {
+  id            String    @id @default(cuid())
+  userId        String    @map("user_id")
+  consentType   String    @map("consent_type")
+  consentVersion String   @map("consent_version")
+  granted       Boolean
+  grantedAt     DateTime  @default(now()) @map("granted_at")
+  withdrawnAt   DateTime? @map("withdrawn_at")
+  ipAddress     String    @map("ip_address")
+  userAgent     String?   @map("user_agent")
+  consentText   String    @map("consent_text")
+  
+  @@unique([userId, consentType, consentVersion])
+  @@index([userId])
+  @@index([consentType])
+  @@index([granted])
+  @@map("user_consents")
+}
+
+model DataRetentionPolicy {
+  id                  String   @id @default(cuid())
+  tableName           String   @map("table_name")
+  retentionPeriodDays Int      @map("retention_period_days")
+  policyType          String   @map("policy_type")
+  description         String?
+  createdBy           String   @map("created_by")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @default(now()) @updatedAt @map("updated_at")
+  isActive            Boolean  @default(true) @map("is_active")
+  
+  @@index([tableName])
+  @@index([isActive])
+  @@map("data_retention_policies")
+}

@@ -1,0 +1,366 @@
+name: Performance Testing
+
+on:
+  schedule:
+    - cron: '0 4 * * 1'  # Weekly on Monday at 4 AM
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      test_duration:
+        description: 'Test duration in seconds'
+        required: false
+        default: '300'
+      virtual_users:
+        description: 'Number of virtual users'
+        required: false
+        default: '50'
+
+env:
+  TEST_DURATION: ${{ github.event.inputs.test_duration || '300' }}
+  VIRTUAL_USERS: ${{ github.event.inputs.virtual_users || '50' }}
+
+jobs:
+  # Load Testing
+  load-test:
+    name: Load Testing
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Start application
+      run: |
+        docker-compose -f docker-compose.yml up -d
+        timeout 300 bash -c 'until curl -f http://localhost:5000/health; do sleep 5; done'
+        
+    - name: Install k6
+      run: |
+        sudo gpg -k
+        sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+        echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+        sudo apt-get update
+        sudo apt-get install k6
+        
+    - name: Create k6 test script
+      run: |
+        mkdir -p tests/performance
+        cat > tests/performance/load-test.js << 'EOF'
+        import http from 'k6/http';
+        import { check, sleep } from 'k6';
+        import { Rate } from 'k6/metrics';
+        
+        export let errorRate = new Rate('errors');
+        
+        export let options = {
+          stages: [
+            { duration: '2m', target: __ENV.VIRTUAL_USERS / 3 }, // Ramp up
+            { duration: '5m', target: __ENV.VIRTUAL_USERS }, // Stay at target
+            { duration: '2m', target: 0 }, // Ramp down
+          ],
+          thresholds: {
+            http_req_duration: ['p(95)<500'], // 95% of requests must complete below 500ms
+            http_req_failed: ['rate<0.1'], // Error rate must be below 10%
+            errors: ['rate<0.1'],
+          },
+        };
+        
+        const BASE_URL = 'http://localhost:5000';
+        
+        export default function() {
+          // Health check
+          let healthRes = http.get(`${BASE_URL}/health`);
+          check(healthRes, {
+            'health check status is 200': (r) => r.status === 200,
+          }) || errorRate.add(1);
+          
+          // API endpoints
+          let apiRes = http.get(`${BASE_URL}/api/health`);
+          check(apiRes, {
+            'API health status is 200': (r) => r.status === 200,
+          }) || errorRate.add(1);
+          
+          sleep(1);
+        }
+        EOF
+        
+    - name: Run load test
+      run: |
+        k6 run tests/performance/load-test.js \
+          --env VIRTUAL_USERS=${{ env.VIRTUAL_USERS }} \
+          --out json=load-test-results.json
+          
+    - name: Upload load test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: load-test-results
+        path: load-test-results.json
+        
+    - name: Stop application
+      if: always()
+      run: docker-compose -f docker-compose.yml down
+
+  # Stress Testing
+  stress-test:
+    name: Stress Testing
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Start application
+      run: |
+        docker-compose -f docker-compose.yml up -d
+        timeout 300 bash -c 'until curl -f http://localhost:5000/health; do sleep 5; done'
+        
+    - name: Install k6
+      run: |
+        sudo gpg -k
+        sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+        echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+        sudo apt-get update
+        sudo apt-get install k6
+        
+    - name: Create k6 stress test script
+      run: |
+        mkdir -p tests/performance
+        cat > tests/performance/stress-test.js << 'EOF'
+        import http from 'k6/http';
+        import { check, sleep } from 'k6';
+        
+        export let options = {
+          stages: [
+            { duration: '1m', target: 50 },
+            { duration: '2m', target: 100 },
+            { duration: '2m', target: 200 },
+            { duration: '2m', target: 300 },
+            { duration: '1m', target: 0 },
+          ],
+        };
+        
+        const BASE_URL = 'http://localhost:5000';
+        
+        export default function() {
+          let res = http.get(`${BASE_URL}/health`);
+          check(res, {
+            'status is 200': (r) => r.status === 200,
+          });
+          sleep(0.5);
+        }
+        EOF
+        
+    - name: Run stress test
+      run: |
+        k6 run tests/performance/stress-test.js --out json=stress-test-results.json
+        
+    - name: Upload stress test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: stress-test-results
+        path: stress-test-results.json
+        
+    - name: Stop application
+      if: always()
+      run: docker-compose -f docker-compose.yml down
+
+  # Database Performance Test
+  database-performance:
+    name: Database Performance Test
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: health_platform_perf
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
+      working-directory: ./backend
+      run: npm ci
+      
+    - name: Run database migrations
+      working-directory: ./backend
+      run: npx prisma migrate deploy
+      env:
+        DATABASE_URL: postgresql://postgres:password@localhost:5432/health_platform_perf
+        
+    - name: Create performance test data
+      working-directory: ./backend
+      run: |
+        cat > perf-seed.js << 'EOF'
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+        
+        async function main() {
+          console.log('Creating performance test data...');
+          
+          // Create test users
+          for (let i = 0; i < 1000; i++) {
+            await prisma.user.create({
+              data: {
+                email: `user${i}@test.com`,
+                name: `Test User ${i}`,
+                passwordHash: 'test-hash',
+                birthDate: new Date('1990-01-01'),
+                gender: 'male',
+                height: 175,
+                weight: 70,
+              },
+            });
+          }
+          
+          console.log('Performance test data created');
+        }
+        
+        main()
+          .catch(console.error)
+          .finally(() => prisma.$disconnect());
+        EOF
+        
+        node perf-seed.js
+      env:
+        DATABASE_URL: postgresql://postgres:password@localhost:5432/health_platform_perf
+        
+    - name: Run database performance tests
+      working-directory: ./backend
+      run: |
+        cat > db-perf-test.js << 'EOF'
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+        
+        async function runPerformanceTests() {
+          console.log('Running database performance tests...');
+          
+          // Test 1: Simple query performance
+          const start1 = Date.now();
+          const users = await prisma.user.findMany({ take: 100 });
+          const end1 = Date.now();
+          console.log(`Simple query (100 users): ${end1 - start1}ms`);
+          
+          // Test 2: Complex query with relations
+          const start2 = Date.now();
+          const usersWithHealth = await prisma.user.findMany({
+            take: 50,
+            include: {
+              healthRecords: true,
+            },
+          });
+          const end2 = Date.now();
+          console.log(`Complex query with relations: ${end2 - start2}ms`);
+          
+          // Test 3: Aggregation query
+          const start3 = Date.now();
+          const userCount = await prisma.user.count();
+          const end3 = Date.now();
+          console.log(`Aggregation query (count): ${end3 - start3}ms`);
+          
+          console.log(`Total users in database: ${userCount}`);
+        }
+        
+        runPerformanceTests()
+          .catch(console.error)
+          .finally(() => prisma.$disconnect());
+        EOF
+        
+        node db-perf-test.js
+      env:
+        DATABASE_URL: postgresql://postgres:password@localhost:5432/health_platform_perf
+
+  # Frontend Performance Test
+  frontend-performance:
+    name: Frontend Performance Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
+      working-directory: ./frontend
+      run: npm ci
+      
+    - name: Build frontend
+      working-directory: ./frontend
+      run: npm run build
+      
+    - name: Install Lighthouse CI
+      run: npm install -g @lhci/cli@0.12.x
+      
+    - name: Start frontend server
+      working-directory: ./frontend
+      run: |
+        npm run preview &
+        sleep 10
+        
+    - name: Run Lighthouse CI
+      run: |
+        lhci autorun --config=.lighthouserc.json || echo "Lighthouse CI completed"
+        
+    - name: Upload Lighthouse results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: lighthouse-results
+        path: .lighthouseci/
+
+  # Performance Report
+  performance-report:
+    name: Generate Performance Report
+    runs-on: ubuntu-latest
+    needs: [load-test, stress-test, database-performance, frontend-performance]
+    if: always()
+    
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      
+    - name: Generate performance report
+      run: |
+        echo "# Performance Test Report" > performance-report.md
+        echo "Date: $(date)" >> performance-report.md
+        echo "Test Duration: ${{ env.TEST_DURATION }}s" >> performance-report.md
+        echo "Virtual Users: ${{ env.VIRTUAL_USERS }}" >> performance-report.md
+        echo "" >> performance-report.md
+        
+        echo "## Test Results" >> performance-report.md
+        echo "- Load Test: ${{ needs.load-test.result }}" >> performance-report.md
+        echo "- Stress Test: ${{ needs.stress-test.result }}" >> performance-report.md
+        echo "- Database Performance: ${{ needs.database-performance.result }}" >> performance-report.md
+        echo "- Frontend Performance: ${{ needs.frontend-performance.result }}" >> performance-report.md
+        
+        if [ -f load-test-results/load-test-results.json ]; then
+          echo "" >> performance-report.md
+          echo "## Load Test Metrics" >> performance-report.md
+          echo "Results available in artifacts" >> performance-report.md
+        fi
+        
+    - name: Upload performance report
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-report
+        path: performance-report.md

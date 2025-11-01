@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { genomicsApi } from '../services/genomicsApi';
+import { medicationApi } from '../services/medicationApi';
 import GenomicDataUpload from '../components/genomics/GenomicDataUpload';
 import RiskVisualizationDashboard from '../components/genomics/RiskVisualizationDashboard';
 import PharmacogenomicsDisplay from '../components/genomics/PharmacogenomicsDisplay';
@@ -21,6 +22,7 @@ const GenomicsPage: React.FC = () => {
   const [traits, setTraits] = useState<TraitData[]>([]);
   const [supportedFeatures, setSupportedFeatures] = useState<SupportedFeatures | null>(null);
   const [selectedDisease, setSelectedDisease] = useState<string>('');
+  const [currentMedications, setCurrentMedications] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
@@ -41,6 +43,9 @@ const GenomicsPage: React.FC = () => {
       const data = await genomicsApi.getGenomicData();
       setGenomicData(data);
 
+      // Load current medications for pharmacogenomics analysis
+      await loadCurrentMedications();
+
       // If genomic data exists, load analysis results
       if (data.length > 0) {
         await loadAnalysisResults();
@@ -50,6 +55,20 @@ const GenomicsPage: React.FC = () => {
       setError('데이터를 불러오는 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadCurrentMedications = async () => {
+    try {
+      // Fetch only active medications
+      const medications = await medicationApi.getMedications(false);
+      const activeMedicationNames = medications
+        .filter(med => med.isActive)
+        .map(med => med.name);
+      setCurrentMedications(activeMedicationNames);
+    } catch (error) {
+      console.error('Error loading medications:', error);
+      // Don't show error to user as this is not critical for genomics functionality
     }
   };
 
@@ -189,7 +208,7 @@ const GenomicsPage: React.FC = () => {
             {pharmacogenomicsData ? (
               <PharmacogenomicsDisplay
                 pharmacogenomicsData={pharmacogenomicsData}
-                medications={[]} // TODO: Get from medication data
+                medications={currentMedications}
               />
             ) : (
               <div className="no-data-message">

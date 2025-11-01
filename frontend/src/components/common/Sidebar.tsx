@@ -74,6 +74,13 @@ const Sidebar: React.FC = () => {
       ]
     },
     {
+      id: 'recommendations',
+      label: '맞춤 권장사항',
+      path: '/recommendations',
+      icon: '💡',
+      badge: null
+    },
+    {
       id: 'ai',
       label: 'AI 인사이트',
       path: '/ai-insights',
@@ -81,7 +88,6 @@ const Sidebar: React.FC = () => {
       badge: 'AI',
       submenu: [
         { label: '건강 예측', path: '/ai-insights/predictions' },
-        { label: '맞춤 권장사항', path: '/ai-insights/recommendations' },
         { label: '이상 징후 감지', path: '/ai-insights/anomaly-detection' },
         { label: '건강 점수', path: '/ai-insights/health-score' }
       ]
@@ -109,6 +115,19 @@ const Sidebar: React.FC = () => {
         { label: '의료 문서 분석', path: '/nlp/documents' },
         { label: '증상 분석', path: '/nlp/symptoms' },
         { label: '사용 통계', path: '/nlp/stats' }
+      ]
+    },
+    {
+      id: 'remote-monitoring',
+      label: '원격 모니터링',
+      path: '/remote-monitoring',
+      icon: '📡',
+      badge: 'Live',
+      submenu: [
+        { label: '실시간 모니터링', path: '/remote-monitoring/live' },
+        { label: '건강 알림', path: '/remote-monitoring/alerts' },
+        { label: '의료진 공유', path: '/remote-monitoring/sharing' },
+        { label: '텔레헬스', path: '/remote-monitoring/telehealth' }
       ]
     },
     {

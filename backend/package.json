@@ -10,7 +10,12 @@
     "test": "jest",
     "db:migrate": "npx prisma migrate dev",
     "db:generate": "npx prisma generate",
-    "db:seed": "npx prisma db seed"
+    "db:seed": "npx prisma db seed",
+    "db:setup": "node scripts/setup-database.js setup",
+    "db:reset": "node scripts/setup-database.js reset",
+    "db:check": "node scripts/setup-database.js check",
+    "migrate": "node scripts/setup-database.js migrate",
+    "seed": "node scripts/setup-database.js seed"
   },
   "dependencies": {
     "@google-cloud/language": "^7.2.1",
@@ -23,6 +28,8 @@
     "express": "^4.18.2",
     "express-rate-limit": "^7.1.5",
     "express-validator": "^7.3.0",
+    "google-auth-library": "^10.5.0",
+    "googleapis": "^164.1.0",
     "helmet": "^7.1.0",
     "joi": "^17.11.0",
     "jsonwebtoken": "^9.0.2",
@@ -30,6 +37,7 @@
     "multer": "^1.4.5-lts.1",
     "natural": "^8.1.0",
     "openai": "^6.7.0",
+    "pg": "^8.11.3",
     "prisma": "^5.6.0",
     "redis": "^4.7.1",
     "uuid": "^9.0.1"
@@ -44,6 +52,7 @@
     "@types/morgan": "^1.9.9",
     "@types/multer": "^1.4.11",
     "@types/node": "^20.9.0",
+    "@types/pg": "^8.10.7",
     "@types/uuid": "^9.0.7",
     "jest": "^29.7.0",
     "nodemon": "^3.0.1",

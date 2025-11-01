@@ -21,6 +21,9 @@ import AIInsightsPage from './pages/AIInsightsPage'
 import NLPPage from './pages/NLPPage'
 import WearablePage from './pages/WearablePage'
 import MedicalRecordsPage from './pages/MedicalRecordsPage'
+import RecommendationsPage from './pages/RecommendationsPage'
+import RemoteMonitoringPage from './pages/RemoteMonitoringPage'
+import { GoogleFitCallback } from './pages/GoogleFitCallback'
 import './App.css'
 import './styles/auth.css'
 import './styles/profile.css'
@@ -30,6 +33,7 @@ import './styles/medication.css'
 import './styles/familyHistory.css'
 import './styles/appointment.css'
 import './pages/MedicalRecordsPage.css'
+import './pages/RecommendationsPage.css'
 
 const queryClient = new QueryClient()
 
@@ -199,6 +203,30 @@ function AppLayout() {
               element={
                 <ProtectedRoute>
                   <MedicalRecordsPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/recommendations" 
+              element={
+                <ProtectedRoute>
+                  <RecommendationsPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/remote-monitoring" 
+              element={
+                <ProtectedRoute>
+                  <RemoteMonitoringPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/google-fit/callback" 
+              element={
+                <ProtectedRoute>
+                  <GoogleFitCallback />
                 </ProtectedRoute>
               } 
             />

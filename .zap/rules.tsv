@@ -1,0 +1,26 @@
+# ZAP Security Rules Configuration
+# Format: RULE_ID	THRESHOLD	[DESCRIPTION]
+
+# Ignore false positives
+10021	IGNORE	X-Content-Type-Options Header Missing
+10020	IGNORE	X-Frame-Options Header Not Set
+10016	IGNORE	Web Browser XSS Protection Not Enabled
+
+# High priority security issues
+40012	FAIL	Cross Site Scripting (Reflected)
+40014	FAIL	Cross Site Scripting (Persistent)
+40016	FAIL	Cross Site Scripting (Persistent) - Prime
+40017	FAIL	Cross Site Scripting (Persistent) - Spider
+90019	FAIL	Server Side Code Injection
+90020	FAIL	Remote OS Command Injection
+
+# Medium priority issues
+10054	WARN	Cookie Without SameSite Attribute
+10055	WARN	CSP Scanner
+10056	WARN	X-Debug-Token Information Leak
+10057	WARN	Username Hash Found
+
+# Low priority issues (informational)
+10015	INFO	Incomplete or No Cache-control and Pragma HTTP Header Set
+10017	INFO	Cross-Domain JavaScript Source File Inclusion
+10019	INFO	Content-Type Header Missing

@@ -4,6 +4,7 @@ import HealthMetricsCards from './HealthMetricsCards';
 import TrendCharts from './TrendCharts';
 import TodaysTasksChecklist from './TodaysTasksChecklist';
 import { healthApiService } from '../../services/healthApi';
+import { tasksApi, Task } from '../../services/tasksApi';
 import { DashboardSummaryResponse, HealthTrendResponse } from '../../types/health';
 
 type DashboardData = DashboardSummaryResponse;
@@ -47,24 +48,76 @@ const HealthDashboard: React.FC = memo(() => {
     refetchOnWindowFocus: false
   });
 
+  // Today's tasks query
+  const {
+    data: todayTasks,
+    isLoading: isTasksLoading,
+    error: tasksError
+  } = useQuery({
+    queryKey: ['todayTasks'],
+    queryFn: () => tasksApi.getTodayTasks(),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
+    refetchOnWindowFocus: false
+  });
+
   const handlePeriodChange = useCallback((period: string) => {
     setSelectedPeriod(period);
   }, []);
 
   const handleTaskToggle = useCallback(async (taskIndex: number) => {
-    // 실제 구현에서는 서버에 태스크 완료 상태를 업데이트
-    console.log(`Task ${taskIndex} toggled`);
-    // TODO: API 호출로 태스크 상태 업데이트
+    if (!todayTasks || taskIndex >= todayTasks.length) return;
     
-    // Optimistically update the cache
-    queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-  }, [queryClient]);
+    const task = todayTasks[taskIndex];
+    
+    try {
+      // API 호출로 태스크 상태 업데이트
+      await tasksApi.toggleTaskCompletion(task.id);
+      
+      // Update the cache
+      queryClient.invalidateQueries({ queryKey: ['todayTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    } catch (error) {
+      console.error('Error toggling task:', error);
+      // 에러 처리 - 사용자에게 알림을 보여줄 수 있음
+    }
+  }, [todayTasks, queryClient]);
 
-  const handleAddTask = useCallback(() => {
-    // 새 태스크 추가 모달 또는 페이지로 이동
-    console.log('Add new task');
-    // TODO: 태스크 추가 기능 구현
-  }, []);
+  const handleAddTask = useCallback(async () => {
+    // 태스크 추가 기능 구현
+    const taskDescription = prompt('새로운 할 일을 입력하세요:');
+    if (!taskDescription || taskDescription.trim() === '') return;
+
+    // 태스크 타입 선택 (간단한 구현)
+    const taskType = prompt(
+      '태스크 유형을 선택하세요:\n1. vital_sign (바이탈 사인)\n2. exercise (운동)\n3. medication (복약)\n4. journal (일지)\n\n숫자를 입력하세요 (1-4):'
+    );
+
+    const typeMap: { [key: string]: 'vital_sign' | 'exercise' | 'medication' | 'journal' } = {
+      '1': 'vital_sign',
+      '2': 'exercise',
+      '3': 'medication',
+      '4': 'journal'
+    };
+
+    const selectedType = typeMap[taskType || ''] || 'journal';
+
+    try {
+      await tasksApi.createTask({
+        type: selectedType,
+        description: taskDescription.trim(),
+        priority: 'medium'
+      });
+
+      // Update the cache
+      queryClient.invalidateQueries({ queryKey: ['todayTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    } catch (error) {
+      console.error('Error creating task:', error);
+      alert('태스크 생성 중 오류가 발생했습니다.');
+    }
+  }, [queryClient]);
 
   const refreshData = useCallback(async () => {
     await Promise.all([
@@ -73,8 +126,8 @@ const HealthDashboard: React.FC = memo(() => {
     ]);
   }, [refetchDashboard, queryClient]);
 
-  const loading = isDashboardLoading;
-  const error = dashboardError;
+  const loading = isDashboardLoading || isTasksLoading;
+  const error = dashboardError || tasksError;
 
   // Type-safe data casting
   const typedDashboardData = dashboardData as DashboardData | undefined;
@@ -158,7 +211,7 @@ const HealthDashboard: React.FC = memo(() => {
             {/* 오늘의 할 일 (1/3 너비) */}
             <div className="col-span-1">
               <TodaysTasksChecklist
-                tasks={typedDashboardData.todaysTasks}
+                tasks={todayTasks || []}
                 onTaskToggle={handleTaskToggle}
                 onAddTask={handleAddTask}
               />

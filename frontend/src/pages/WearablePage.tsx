@@ -1,5 +1,6 @@
 import React from 'react';
 import WearableDeviceManager from '../components/wearable/WearableDeviceManager';
+import { GoogleFitIntegration } from '../components/wearable/GoogleFitIntegration';
 import './WearablePage.css';
 
 const WearablePage: React.FC = () => {
@@ -14,6 +15,11 @@ const WearablePage: React.FC = () => {
       </div>
 
       <WearableDeviceManager />
+
+      {/* Google Fit 전용 연동 섹션 */}
+      <div className="google-fit-section">
+        <GoogleFitIntegration />
+      </div>
 
       <div className="wearable-info">
         <div className="info-section">

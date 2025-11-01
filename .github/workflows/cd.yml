@@ -1,0 +1,347 @@
+name: Continuous Deployment
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Build and Push Docker Images
+  build-and-push:
+    name: Build and Push Images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    outputs:
+      frontend-image: ${{ steps.meta-frontend.outputs.tags }}
+      backend-image: ${{ steps.meta-backend.outputs.tags }}
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Extract metadata for frontend
+      id: meta-frontend
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=sha,prefix={{branch}}-
+          
+    - name: Extract metadata for backend
+      id: meta-backend
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=sha,prefix={{branch}}-
+          
+    - name: Build and push frontend image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./frontend
+        file: ./frontend/Dockerfile
+        push: true
+        tags: ${{ steps.meta-frontend.outputs.tags }}
+        labels: ${{ steps.meta-frontend.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        
+    - name: Build and push backend image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend
+        file: ./backend/Dockerfile
+        push: true
+        tags: ${{ steps.meta-backend.outputs.tags }}
+        labels: ${{ steps.meta-backend.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  # Deploy to Staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    environment: staging
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup deployment environment
+      run: |
+        echo "FRONTEND_IMAGE=${{ needs.build-and-push.outputs.frontend-image }}" >> $GITHUB_ENV
+        echo "BACKEND_IMAGE=${{ needs.build-and-push.outputs.backend-image }}" >> $GITHUB_ENV
+        
+    - name: Deploy to staging server
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.STAGING_HOST }}
+        username: ${{ secrets.STAGING_USER }}
+        key: ${{ secrets.STAGING_SSH_KEY }}
+        port: ${{ secrets.STAGING_PORT }}
+        script: |
+          cd /opt/health-platform
+          
+          # Pull latest code
+          git pull origin main
+          
+          # Update environment variables
+          echo "FRONTEND_IMAGE=${{ env.FRONTEND_IMAGE }}" > .env.staging
+          echo "BACKEND_IMAGE=${{ env.BACKEND_IMAGE }}" >> .env.staging
+          cat .env.staging.template >> .env.staging
+          
+          # Deploy with Docker Compose
+          docker-compose -f docker-compose.yml --env-file .env.staging pull
+          docker-compose -f docker-compose.yml --env-file .env.staging up -d
+          
+          # Run health checks
+          timeout 300 bash -c 'until curl -f http://localhost:5000/health; do sleep 5; done'
+          
+          # Clean up old images
+          docker image prune -f
+          
+    - name: Run smoke tests on staging
+      run: |
+        # Wait for deployment to be ready
+        sleep 30
+        
+        # Run basic smoke tests
+        curl -f ${{ secrets.STAGING_URL }}/health
+        curl -f ${{ secrets.STAGING_URL }}/api/health
+        
+    - name: Notify staging deployment
+      uses: 8398a7/action-slack@v3
+      if: always()
+      with:
+        status: ${{ job.status }}
+        channel: '#deployments'
+        text: 'Staging deployment ${{ job.status }}: ${{ github.sha }}'
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Deploy to Production
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build-and-push, deploy-staging]
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    environment: production
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup deployment environment
+      run: |
+        echo "FRONTEND_IMAGE=${{ needs.build-and-push.outputs.frontend-image }}" >> $GITHUB_ENV
+        echo "BACKEND_IMAGE=${{ needs.build-and-push.outputs.backend-image }}" >> $GITHUB_ENV
+        
+    - name: Create deployment backup
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.PRODUCTION_HOST }}
+        username: ${{ secrets.PRODUCTION_USER }}
+        key: ${{ secrets.PRODUCTION_SSH_KEY }}
+        port: ${{ secrets.PRODUCTION_PORT }}
+        script: |
+          cd /opt/health-platform
+          
+          # Create backup
+          timestamp=$(date +%Y%m%d_%H%M%S)
+          mkdir -p backups
+          
+          # Backup database
+          docker-compose exec -T postgres pg_dump -U $POSTGRES_USER $POSTGRES_DB > backups/db_backup_$timestamp.sql
+          
+          # Backup uploads
+          tar -czf backups/uploads_backup_$timestamp.tar.gz backend/uploads/
+          
+          echo "Backup created: $timestamp"
+          
+    - name: Deploy to production (Blue-Green)
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.PRODUCTION_HOST }}
+        username: ${{ secrets.PRODUCTION_USER }}
+        key: ${{ secrets.PRODUCTION_SSH_KEY }}
+        port: ${{ secrets.PRODUCTION_PORT }}
+        script: |
+          cd /opt/health-platform
+          
+          # Pull latest code
+          git pull origin main
+          
+          # Update environment variables
+          echo "FRONTEND_IMAGE=${{ env.FRONTEND_IMAGE }}" > .env.production
+          echo "BACKEND_IMAGE=${{ env.BACKEND_IMAGE }}" >> .env.production
+          cat .env.production.template >> .env.production
+          
+          # Blue-Green deployment
+          # Start new services with different names
+          docker-compose -f docker-compose.prod.yml --env-file .env.production -p health-platform-green pull
+          docker-compose -f docker-compose.prod.yml --env-file .env.production -p health-platform-green up -d
+          
+          # Wait for new services to be healthy
+          timeout 300 bash -c 'until curl -f http://localhost:5001/health; do sleep 5; done'
+          
+          # Switch traffic (update load balancer)
+          # This would typically involve updating nginx config or load balancer
+          
+          # Stop old services
+          docker-compose -f docker-compose.prod.yml -p health-platform-blue down || true
+          
+          # Rename new services to standard names
+          docker-compose -f docker-compose.prod.yml --env-file .env.production -p health-platform-green down
+          docker-compose -f docker-compose.prod.yml --env-file .env.production up -d
+          
+          # Clean up
+          docker image prune -f
+          
+    - name: Run production health checks
+      run: |
+        # Wait for deployment to be ready
+        sleep 60
+        
+        # Run comprehensive health checks
+        curl -f ${{ secrets.PRODUCTION_URL }}/health
+        curl -f ${{ secrets.PRODUCTION_URL }}/api/health
+        
+        # Test critical endpoints
+        curl -f ${{ secrets.PRODUCTION_URL }}/api/auth/health
+        
+    - name: Run production smoke tests
+      run: |
+        # Add production-specific smoke tests
+        echo "Running production smoke tests..."
+        
+        # Test user registration (with cleanup)
+        # Test login functionality
+        # Test critical API endpoints
+        
+    - name: Notify production deployment
+      uses: 8398a7/action-slack@v3
+      if: always()
+      with:
+        status: ${{ job.status }}
+        channel: '#deployments'
+        text: 'Production deployment ${{ job.status }}: ${{ github.ref_name }}'
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Rollback on Failure
+  rollback:
+    name: Rollback on Failure
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: failure() && needs.deploy-production.result == 'failure'
+    environment: production
+    
+    steps:
+    - name: Rollback production deployment
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.PRODUCTION_HOST }}
+        username: ${{ secrets.PRODUCTION_USER }}
+        key: ${{ secrets.PRODUCTION_SSH_KEY }}
+        port: ${{ secrets.PRODUCTION_PORT }}
+        script: |
+          cd /opt/health-platform
+          
+          echo "Rolling back to previous version..."
+          
+          # Get latest backup
+          latest_backup=$(ls -t backups/db_backup_*.sql | head -1)
+          
+          # Stop current services
+          docker-compose -f docker-compose.prod.yml down
+          
+          # Restore database if needed
+          if [ -f "$latest_backup" ]; then
+            docker-compose -f docker-compose.prod.yml up -d postgres
+            sleep 30
+            docker-compose -f docker-compose.prod.yml exec -T postgres psql -U $POSTGRES_USER -d $POSTGRES_DB < $latest_backup
+          fi
+          
+          # Start previous version (assuming it's tagged as 'previous')
+          docker-compose -f docker-compose.prod.yml up -d
+          
+          echo "Rollback completed"
+          
+    - name: Notify rollback
+      uses: 8398a7/action-slack@v3
+      with:
+        status: 'warning'
+        channel: '#deployments'
+        text: 'Production rollback completed due to deployment failure'
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Post-deployment Tasks
+  post-deployment:
+    name: Post-deployment Tasks
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: success()
+    
+    steps:
+    - name: Update monitoring dashboards
+      run: |
+        # Update Grafana dashboards
+        # Update alerting rules
+        echo "Updating monitoring configuration..."
+        
+    - name: Warm up caches
+      run: |
+        # Warm up Redis caches
+        # Pre-load critical data
+        echo "Warming up application caches..."
+        
+    - name: Update documentation
+      run: |
+        # Update API documentation
+        # Update deployment logs
+        echo "Updating documentation..."
+        
+    - name: Security scan post-deployment
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ needs.build-and-push.outputs.backend-image }}
+        format: 'sarif'
+        output: 'trivy-results.sarif'

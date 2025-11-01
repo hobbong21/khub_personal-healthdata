@@ -508,95 +508,19 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ user, onLogout }) => {
           )}
 
           {activeTab === 'medications' && (
-            <div>
-              <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#111827', marginBottom: '24px' }}>
-                Medications
-              </h2>
-              <div style={{
-                background: '#ffffff',
-                padding: '32px',
-                borderRadius: '12px',
-                border: '1px solid #e5e7eb',
-                textAlign: 'center'
-              }}>
-                <div style={{ fontSize: '48px', marginBottom: '16px' }}>💊</div>
-                <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '8px' }}>
-                  Medication Management
-                </h3>
-                <p style={{ color: '#6b7280' }}>
-                  Track your medications, set reminders, and monitor adherence.
-                </p>
-              </div>
-            </div>
+            <MedicationsTab />
           )}
 
           {activeTab === 'appointments' && (
-            <div>
-              <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#111827', marginBottom: '24px' }}>
-                Appointments
-              </h2>
-              <div style={{
-                background: '#ffffff',
-                padding: '32px',
-                borderRadius: '12px',
-                border: '1px solid #e5e7eb',
-                textAlign: 'center'
-              }}>
-                <div style={{ fontSize: '48px', marginBottom: '16px' }}>📅</div>
-                <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '8px' }}>
-                  Appointment Scheduling
-                </h3>
-                <p style={{ color: '#6b7280' }}>
-                  Schedule and manage your healthcare appointments.
-                </p>
-              </div>
-            </div>
+            <AppointmentsTab />
           )}
 
           {activeTab === 'reports' && (
-            <div>
-              <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#111827', marginBottom: '24px' }}>
-                Health Reports
-              </h2>
-              <div style={{
-                background: '#ffffff',
-                padding: '32px',
-                borderRadius: '12px',
-                border: '1px solid #e5e7eb',
-                textAlign: 'center'
-              }}>
-                <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
-                <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '8px' }}>
-                  Health Analytics
-                </h3>
-                <p style={{ color: '#6b7280' }}>
-                  View detailed reports and trends of your health data.
-                </p>
-              </div>
-            </div>
+            <ReportsTab />
           )}
 
           {activeTab === 'settings' && (
-            <div>
-              <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#111827', marginBottom: '24px' }}>
-                Settings
-              </h2>
-              <div style={{
-                background: '#ffffff',
-                padding: '32px',
-                borderRadius: '12px',
-                border: '1px solid #e5e7eb',
-                textAlign: 'center'
-              }}>
-                <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚙️</div>
-                <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '8px' }}>
-                  Account Settings
-                </h3>
-                <p style={{ color: '#6b7280' }}>
-                  Manage your profile, privacy settings, and preferences.
-                </p>
-              </div>
-            </div>
+            <SettingsTab user={user} />
           )}
         </main>
       </div>
@@ -837,4 +761,558 @@ const HealthDataTab: React.FC<{
   );
 };
 
-export default DashboardPage;
+// Medications Tab Component
+const MedicationsTab: React.FC = () => {
+  const { t } = useLanguage();
+  const [medications, setMedications] = useState([
+    {
+      id: 1,
+      name: '아스피린',
+      dosage: '100mg',
+      frequency: '1일 1회',
+      time: '08:00',
+      taken: true,
+      nextDose: '내일 08:00'
+    },
+    {
+      id: 2,
+      name: '메트포르민',
+      dosage: '500mg',
+      frequency: '1일 2회',
+      time: '08:00, 20:00',
+      taken: false,
+      nextDose: '오늘 20:00'
+    }
+  ]);
+
+  const [newMedication, setNewMedication] = useState({
+    name: '',
+    dosage: '',
+    frequency: '',
+    time: ''
+  });
+
+  const handleAddMedication = (e: React.FormEvent) => {
+    e.preventDefault();
+    const medication = {
+      id: Date.now(),
+      ...newMedication,
+      taken: false,
+      nextDose: `오늘 ${newMedication.time}`
+    };
+    setMedications([...medications, medication]);
+    setNewMedication({ name: '', dosage: '', frequency: '', time: '' });
+  };
+
+  const toggleMedication = (id: number) => {
+    setMedications(medications.map(med => 
+      med.id === id ? { ...med, taken: !med.taken } : med
+    ));
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+        <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#111827', margin: 0 }}>
+          {t('dashboard.menu.medications')}
+        </h2>
+        <div style={{
+          background: '#eff6ff',
+          color: '#2563eb',
+          padding: '8px 16px',
+          borderRadius: '20px',
+          fontSize: '14px',
+          fontWeight: '600'
+        }}>
+          {medications.filter(m => m.taken).length}/{medications.length} 복용 완료
+        </div>
+      </div>
+
+      {/* Today's Medications */}
+      <div style={{
+        background: '#ffffff',
+        padding: '24px',
+        borderRadius: '12px',
+        border: '1px solid #e5e7eb',
+        marginBottom: '24px'
+      }}>
+        <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '20px' }}>
+          오늘의 복약 일정
+        </h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {medications.map((med) => (
+            <div key={med.id} style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '16px',
+              background: med.taken ? '#f0fdf4' : '#fef3c7',
+              border: `1px solid ${med.taken ? '#bbf7d0' : '#fde68a'}`,
+              borderRadius: '8px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  background: med.taken ? '#10b981' : '#f59e0b',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '20px'
+                }}>
+                  💊
+                </div>
+                <div>
+                  <h4 style={{ fontSize: '16px', fontWeight: '600', color: '#111827', margin: '0 0 4px 0' }}>
+                    {med.name}
+                  </h4>
+                  <p style={{ fontSize: '14px', color: '#6b7280', margin: '0 0 2px 0' }}>
+                    {med.dosage} • {med.frequency}
+                  </p>
+                  <p style={{ fontSize: '12px', color: '#9ca3af', margin: 0 }}>
+                    다음 복용: {med.nextDose}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => toggleMedication(med.id)}
+                style={{
+                  background: med.taken ? '#10b981' : '#2563eb',
+                  color: 'white',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer'
+                }}
+              >
+                {med.taken ? '복용 완료' : '복용하기'}
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Add New Medication */}
+      <div style={{
+        background: '#ffffff',
+        padding: '24px',
+        borderRadius: '12px',
+        border: '1px solid #e5e7eb'
+      }}>
+        <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '20px' }}>
+          새 약물 추가
+        </h3>
+        <form onSubmit={handleAddMedication}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '16px',
+            marginBottom: '20px'
+          }}>
+            <div>
+              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px', display: 'block' }}>
+                약물명
+              </label>
+              <input
+                type="text"
+                value={newMedication.name}
+                onChange={(e) => setNewMedication({...newMedication, name: e.target.value})}
+                required
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  boxSizing: 'border-box'
+                }}
+                placeholder="예: 아스피린"
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px', display: 'block' }}>
+                용량
+              </label>
+              <input
+                type="text"
+                value={newMedication.dosage}
+                onChange={(e) => setNewMedication({...newMedication, dosage: e.target.value})}
+                required
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  boxSizing: 'border-box'
+                }}
+                placeholder="예: 100mg"
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px', display: 'block' }}>
+                복용 빈도
+              </label>
+              <select
+                value={newMedication.frequency}
+                onChange={(e) => setNewMedication({...newMedication, frequency: e.target.value})}
+                required
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  boxSizing: 'border-box'
+                }}
+              >
+                <option value="">선택하세요</option>
+                <option value="1일 1회">1일 1회</option>
+                <option value="1일 2회">1일 2회</option>
+                <option value="1일 3회">1일 3회</option>
+                <option value="필요시">필요시</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px', display: 'block' }}>
+                복용 시간
+              </label>
+              <input
+                type="time"
+                value={newMedication.time}
+                onChange={(e) => setNewMedication({...newMedication, time: e.target.value})}
+                required
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+          </div>
+          <button
+            type="submit"
+            style={{
+              background: '#2563eb',
+              color: 'white',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              border: 'none',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
+          >
+            약물 추가
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+// Appointments Tab Component
+const AppointmentsTab: React.FC = () => {
+  const { t } = useLanguage();
+  const [appointments, setAppointments] = useState([
+    {
+      id: 1,
+      doctor: '김내과 의사',
+      specialty: '내과',
+      date: '2024-11-15',
+      time: '14:00',
+      status: 'confirmed',
+      location: '서울대병원 내과 3층'
+    },
+    {
+      id: 2,
+      doctor: '이심장 의사',
+      specialty: '심장내과',
+      date: '2024-11-20',
+      time: '10:30',
+      status: 'pending',
+      location: '삼성서울병원 심장센터'
+    }
+  ]);
+
+  const [newAppointment, setNewAppointment] = useState({
+    doctor: '',
+    specialty: '',
+    date: '',
+    time: '',
+    location: ''
+  });
+
+  const handleAddAppointment = (e: React.FormEvent) => {
+    e.preventDefault();
+    const appointment = {
+      id: Date.now(),
+      ...newAppointment,
+      status: 'pending'
+    };
+    setAppointments([...appointments, appointment]);
+    setNewAppointment({ doctor: '', specialty: '', date: '', time: '', location: '' });
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'confirmed': return { bg: '#f0fdf4', border: '#bbf7d0', text: '#166534' };
+      case 'pending': return { bg: '#fef3c7', border: '#fde68a', text: '#92400e' };
+      case 'cancelled': return { bg: '#fef2f2', border: '#fecaca', text: '#991b1b' };
+      default: return { bg: '#f9fafb', border: '#e5e7eb', text: '#6b7280' };
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'confirmed': return '확정';
+      case 'pending': return '대기중';
+      case 'cancelled': return '취소됨';
+      default: return status;
+    }
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+        <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#111827', margin: 0 }}>
+          {t('dashboard.menu.appointments')}
+        </h2>
+        <div style={{
+          background: '#eff6ff',
+          color: '#2563eb',
+          padding: '8px 16px',
+          borderRadius: '20px',
+          fontSize: '14px',
+          fontWeight: '600'
+        }}>
+          {appointments.filter(a => a.status === 'confirmed').length}개 예약 확정
+        </div>
+      </div>
+
+      {/* Upcoming Appointments */}
+      <div style={{
+        background: '#ffffff',
+        padding: '24px',
+        borderRadius: '12px',
+        border: '1px solid #e5e7eb',
+        marginBottom: '24px'
+      }}>
+        <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '20px' }}>
+          예정된 진료
+        </h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {appointments.map((appointment) => {
+            const statusStyle = getStatusColor(appointment.status);
+            return (
+              <div key={appointment.id} style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '20px',
+                background: '#f9fafb',
+                border: '1px solid #e5e7eb',
+                borderRadius: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{
+                    width: '56px',
+                    height: '56px',
+                    background: '#2563eb',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '24px'
+                  }}>
+                    👨‍⚕️
+                  </div>
+                  <div>
+                    <h4 style={{ fontSize: '16px', fontWeight: '600', color: '#111827', margin: '0 0 4px 0' }}>
+                      {appointment.doctor}
+                    </h4>
+                    <p style={{ fontSize: '14px', color: '#6b7280', margin: '0 0 4px 0' }}>
+                      {appointment.specialty} • {appointment.date} {appointment.time}
+                    </p>
+                    <p style={{ fontSize: '12px', color: '#9ca3af', margin: 0 }}>
+                      📍 {appointment.location}
+                    </p>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    background: statusStyle.bg,
+                    color: statusStyle.text,
+                    border: `1px solid ${statusStyle.border}`,
+                    padding: '4px 12px',
+                    borderRadius: '16px',
+                    fontSize: '12px',
+                    fontWeight: '500'
+                  }}>
+                    {getStatusText(appointment.status)}
+                  </div>
+                  <button style={{
+                    background: 'transparent',
+                    color: '#6b7280',
+                    border: '1px solid #d1d5db',
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    cursor: 'pointer'
+                  }}>
+                    수정
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Add New Appointment */}
+      <div style={{
+        background: '#ffffff',
+        padding: '24px',
+        borderRadius: '12px',
+        border: '1px solid #e5e7eb'
+      }}>
+        <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '20px' }}>
+          새 진료 예약
+        </h3>
+        <form onSubmit={handleAddAppointment}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '16px',
+            marginBottom: '20px'
+          }}>
+            <div>
+              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px', display: 'block' }}>
+                의사명
+              </label>
+              <input
+                type="text"
+                value={newAppointment.doctor}
+                onChange={(e) => setNewAppointment({...newAppointment, doctor: e.target.value})}
+                required
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  boxSizing: 'border-box'
+                }}
+                placeholder="예: 김내과 의사"
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px', display: 'block' }}>
+                진료과
+              </label>
+              <select
+                value={newAppointment.specialty}
+                onChange={(e) => setNewAppointment({...newAppointment, specialty: e.target.value})}
+                required
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  boxSizing: 'border-box'
+                }}
+              >
+                <option value="">선택하세요</option>
+                <option value="내과">내과</option>
+                <option value="외과">외과</option>
+                <option value="정형외과">정형외과</option>
+                <option value="심장내과">심장내과</option>
+                <option value="신경과">신경과</option>
+                <option value="피부과">피부과</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px', display: 'block' }}>
+                날짜
+              </label>
+              <input
+                type="date"
+                value={newAppointment.date}
+                onChange={(e) => setNewAppointment({...newAppointment, date: e.target.value})}
+                required
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px', display: 'block' }}>
+                시간
+              </label>
+              <input
+                type="time"
+                value={newAppointment.time}
+                onChange={(e) => setNewAppointment({...newAppointment, time: e.target.value})}
+                required
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+          </div>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px', display: 'block' }}>
+              병원/위치
+            </label>
+            <input
+              type="text"
+              value={newAppointment.location}
+              onChange={(e) => setNewAppointment({...newAppointment, location: e.target.value})}
+              required
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '14px',
+                boxSizing: 'border-box'
+              }}
+              placeholder="예: 서울대병원 내과 3층"
+            />
+          </div>
+          <button
+            type="submit"
+            style={{
+              background: '#2563eb',
+              color: 'white',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              border: 'none',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
+          >
+            예약 추가
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};

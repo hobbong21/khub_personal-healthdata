@@ -23,13 +23,31 @@ import nlpRoutes from './routes/nlp';
 import wearableRoutes from './routes/wearable';
 import appleHealthRoutes from './routes/appleHealth';
 import googleFitRoutes from './routes/googleFit';
+import remoteMonitoringRoutes from './routes/remoteMonitoring';
+import telehealthRoutes from './routes/telehealth';
+import dataAnonymizationRoutes from './routes/dataAnonymization';
+import researchParticipationRoutes from './routes/researchParticipation';
+import incentiveManagementRoutes from './routes/incentiveManagement';
+import performanceRoutes from './routes/performance';
+import monitoringRoutes from './routes/monitoring';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
 import { notFound } from './middleware/notFound';
+import { 
+  generateRequestId, 
+  recordStartTime, 
+  logAPIRequest, 
+  logErrors, 
+  trackUserActivity,
+  detectSecurityEvents,
+  monitorRequestSize
+} from './middleware/monitoring';
 
 // Import Redis service
 import { redisService } from './config/redis';
+import { monitoringService } from './services/monitoringService';
+import { loggingService } from './services/loggingService';
 
 // Load environment variables
 dotenv.config();
@@ -60,6 +78,14 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Monitoring middleware
+app.use(generateRequestId);
+app.use(recordStartTime);
+app.use(logAPIRequest);
+app.use(trackUserActivity);
+app.use(detectSecurityEvents);
+app.use(monitorRequestSize());
+
 // Health check endpoint
 app.get('/health', (_req, res) => {
   res.status(200).json({ 
@@ -86,12 +112,20 @@ app.use('/api/nlp', nlpRoutes);
 app.use('/api/wearable', wearableRoutes);
 app.use('/api/apple-health', appleHealthRoutes);
 app.use('/api/google-fit', googleFitRoutes);
+app.use('/api/remote-monitoring', remoteMonitoringRoutes);
+app.use('/api/telehealth', telehealthRoutes);
+app.use('/api/data-anonymization', dataAnonymizationRoutes);
+app.use('/api/research', researchParticipationRoutes);
+app.use('/api/incentives', incentiveManagementRoutes);
+app.use('/api/performance', performanceRoutes);
+app.use('/api/monitoring', monitoringRoutes);
 
 // Error handling middleware
 app.use(notFound);
+app.use(logErrors);
 app.use(errorHandler);
 
-// Initialize Redis connection
+// Initialize services
 async function initializeServices() {
   try {
     await redisService.connect();
@@ -99,6 +133,21 @@ async function initializeServices() {
   } catch (error) {
     console.warn('⚠️  Redis connection failed, continuing without cache:', error);
   }
+
+  // Start monitoring service
+  try {
+    monitoringService.startMonitoring(60000); // 1분 간격
+    console.log('✅ Monitoring service started');
+  } catch (error) {
+    console.warn('⚠️  Monitoring service failed to start:', error);
+  }
+
+  // Log application startup
+  loggingService.info('Health Platform application started', {
+    port: PORT,
+    environment: process.env.NODE_ENV,
+    nodeVersion: process.version
+  });
 }
 
 // Start server
@@ -114,13 +163,29 @@ async function startServer() {
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   console.log('SIGTERM received, shutting down gracefully');
+  
+  // Stop monitoring
+  monitoringService.stopMonitoring();
+  
+  // Disconnect services
   await redisService.disconnect();
+  loggingService.close();
+  
+  console.log('✅ Graceful shutdown completed');
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
   console.log('SIGINT received, shutting down gracefully');
+  
+  // Stop monitoring
+  monitoringService.stopMonitoring();
+  
+  // Disconnect services
   await redisService.disconnect();
+  loggingService.close();
+  
+  console.log('✅ Graceful shutdown completed');
   process.exit(0);
 });
 

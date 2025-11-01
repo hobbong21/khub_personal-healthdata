@@ -3,179 +3,103 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Alert, AlertDescription } from '../ui/alert';
-import { Loader2, Smartphone, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
+import { Loader2, Smartphone, CheckCircle, XCircle, Settings, Sync } from 'lucide-react';
+import { googleFitApi, GoogleFitConnectionStatus, GoogleFitSyncResult } from '../../services/googleFitApi';
 
-interface GoogleFitDevice {
-  id: string;
-  deviceName: string;
-  isActive: boolean;
-  lastSyncAt?: string;
-  syncSettings: {
-    autoSync: boolean;
-    syncInterval: number;
-    dataTypes: string[];
-  };
-}
 
-interface GoogleFitConnectionStatus {
-  isConnected: boolean;
-  hasValidToken: boolean;
-  lastSyncAt?: string;
-  availableDataSources: string[];
-  errors: string[];
-}
 
+/**
+ * Google Fit 연동 컴포넌트
+ * 요구사항 17.3: 안드로이드 기기 데이터 동기화
+ */
 export const GoogleFitIntegration: React.FC = () => {
-  const { user } = useAuth();
-  const [devices, setDevices] = useState<GoogleFitDevice[]>([]);
-  const [connectionStatus, setConnectionStatus] = useState<GoogleFitConnectionStatus | null>(null);
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
+  const [status, setStatus] = useState<GoogleFitConnectionStatus>({ isConnected: false });
+  const [loading, setLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-
-  // Google Fit에서 지원하는 데이터 타입
-  const supportedDataTypes = [
-    { id: 'heart_rate', name: '심박수', unit: 'bpm' },
-    { id: 'steps', name: '걸음 수', unit: '걸음' },
-    { id: 'calories', name: '소모 칼로리', unit: 'kcal' },
-    { id: 'sleep', name: '수면', unit: '분' },
-    { id: 'weight', name: '체중', unit: 'kg' },
-    { id: 'distance', name: '이동 거리', unit: 'km' },
-    { id: 'exercise_sessions', name: '운동 세션', unit: '분' },
-  ];
+  const [syncResult, setSyncResult] = useState<GoogleFitSyncResult | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
-    loadDevices();
+    checkConnectionStatus();
   }, []);
 
-  const loadDevices = async () => {
+  const checkConnectionStatus = async () => {
     try {
-      const response = await fetch('/api/wearable/devices', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const googleFitDevices = data.data.filter((device: any) => device.deviceType === 'google_fit');
-        setDevices(googleFitDevices);
-
-        // 첫 번째 Google Fit 기기의 연결 상태 확인
-        if (googleFitDevices.length > 0) {
-          checkConnectionStatus(googleFitDevices[0].id);
-        }
-      }
-    } catch (error) {
-      console.error('기기 목록 로드 실패:', error);
-      setError('기기 목록을 불러오는데 실패했습니다.');
-    }
-  };
-
-  const checkConnectionStatus = async (deviceConfigId: string) => {
-    try {
-      const response = await fetch(`/api/google-fit/connection-status/${deviceConfigId}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setConnectionStatus(data.data);
-      }
-    } catch (error) {
-      console.error('연결 상태 확인 실패:', error);
-    }
-  };
-
-  const initiateGoogleFitConnection = async () => {
-    setIsConnecting(true);
-    setError(null);
-
-    try {
-      // Google Fit 인증 URL 생성
-      const redirectUri = `${window.location.origin}/google-fit/callback`;
-      const response = await fetch(`/api/google-fit/auth-url?redirectUri=${encodeURIComponent(redirectUri)}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        // Google OAuth 페이지로 리다이렉트
-        window.location.href = data.data.authUrl;
-      } else {
-        throw new Error('인증 URL 생성에 실패했습니다.');
-      }
-    } catch (error) {
-      console.error('Google Fit 연결 실패:', error);
-      setError(error instanceof Error ? error.message : 'Google Fit 연결에 실패했습니다.');
+      setLoading(true);
+      const data = await googleFitApi.getConnectionStatus();
+      setStatus(data);
+      setError(null);
+    } catch (err) {
+      console.error('Error checking Google Fit status:', err);
+      setError('연결 상태 확인에 실패했습니다.');
     } finally {
-      setIsConnecting(false);
+      setLoading(false);
     }
   };
 
-  const syncGoogleFitData = async (deviceConfigId: string) => {
-    setIsSyncing(true);
-    setError(null);
-    setSuccess(null);
-
+  const handleConnect = async () => {
     try {
-      const response = await fetch(`/api/google-fit/sync/${deviceConfigId}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          dataTypes: ['heart_rate', 'steps', 'calories', 'sleep', 'weight'],
-          startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-          endDate: new Date().toISOString(),
-        }),
-      });
+      setLoading(true);
+      setError(null);
 
-      const data = await response.json();
-
-      if (data.success) {
-        setSuccess(`${data.syncedDataCount}개의 데이터가 성공적으로 동기화되었습니다.`);
-        loadDevices(); // 기기 목록 새로고침
-        if (deviceConfigId) {
-          checkConnectionStatus(deviceConfigId);
+      const data = await googleFitApi.getAuthUrl();
+      
+      // 새 창에서 Google Fit 인증 페이지 열기
+      window.open(data.authUrl, 'google-fit-auth', 'width=500,height=600');
+      
+      // 인증 완료 후 상태 새로고침을 위한 리스너
+      const handleMessage = (event: MessageEvent) => {
+        if (event.data.type === 'GOOGLE_FIT_AUTH_SUCCESS') {
+          checkConnectionStatus();
+          window.removeEventListener('message', handleMessage);
         }
-      } else {
-        throw new Error(data.message || '동기화에 실패했습니다.');
-      }
-    } catch (error) {
-      console.error('Google Fit 동기화 실패:', error);
-      setError(error instanceof Error ? error.message : 'Google Fit 동기화에 실패했습니다.');
+      };
+      window.addEventListener('message', handleMessage);
+    } catch (err) {
+      console.error('Error connecting to Google Fit:', err);
+      setError(err instanceof Error ? err.message : '연결에 실패했습니다.');
     } finally {
-      setIsSyncing(false);
+      setLoading(false);
     }
   };
 
-  const disconnectGoogleFit = async (deviceConfigId: string) => {
+  const handleDisconnect = async () => {
     try {
-      const response = await fetch(`/api/wearable/devices/${deviceConfigId}/disconnect`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
+      setLoading(true);
+      setError(null);
 
-      if (response.ok) {
-        setSuccess('Google Fit 연동이 해제되었습니다.');
-        loadDevices();
-        setConnectionStatus(null);
-      } else {
-        throw new Error('연동 해제에 실패했습니다.');
-      }
-    } catch (error) {
-      console.error('Google Fit 연동 해제 실패:', error);
-      setError(error instanceof Error ? error.message : 'Google Fit 연동 해제에 실패했습니다.');
+      await googleFitApi.disconnect();
+      setStatus({ isConnected: false });
+      setSyncResult(null);
+    } catch (err) {
+      console.error('Error disconnecting Google Fit:', err);
+      setError(err instanceof Error ? err.message : '연동 해제에 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSync = async () => {
+    try {
+      setSyncing(true);
+      setError(null);
+      setSyncResult(null);
+
+      const syncOptions = {
+        dataTypes: status.syncSettings?.dataTypes || ['steps', 'heart_rate', 'calories'],
+        startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7일 전
+        endDate: new Date().toISOString(),
+      };
+
+      const result = await googleFitApi.syncData(syncOptions);
+      setSyncResult(result);
+      await checkConnectionStatus(); // 상태 업데이트
+    } catch (err) {
+      console.error('Error syncing Google Fit data:', err);
+      setError(err instanceof Error ? err.message : '동기화에 실패했습니다.');
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -184,16 +108,41 @@ export const GoogleFitIntegration: React.FC = () => {
     
     const date = new Date(lastSyncAt);
     const now = new Date();
-    const diffMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    const diffMs = now.getTime() - date.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     
-    if (diffMinutes < 1) return '방금 전';
-    if (diffMinutes < 60) return `${diffMinutes}분 전`;
-    if (diffMinutes < 1440) return `${Math.floor(diffMinutes / 60)}시간 전`;
-    return `${Math.floor(diffMinutes / 1440)}일 전`;
+    if (diffHours < 1) return '방금 전';
+    if (diffHours < 24) return `${diffHours}시간 전`;
+    return date.toLocaleDateString('ko-KR');
   };
 
+  const getDataTypeLabel = (dataType: string) => {
+    const labels: Record<string, string> = {
+      steps: '걸음 수',
+      heart_rate: '심박수',
+      calories: '칼로리',
+      sleep: '수면',
+      weight: '체중',
+      blood_pressure: '혈압',
+      distance: '이동 거리',
+      exercise_sessions: '운동 세션',
+    };
+    return labels[dataType] || dataType;
+  };
+
+  if (loading && !status.isConnected) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center p-6">
+          <Loader2 className="h-6 w-6 animate-spin mr-2" />
+          <span>Google Fit 연결 상태 확인 중...</span>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -204,162 +153,158 @@ export const GoogleFitIntegration: React.FC = () => {
         <CardContent className="space-y-4">
           {error && (
             <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
+              <XCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
-          {success && (
-            <Alert>
-              <CheckCircle className="h-4 w-4" />
-              <AlertDescription>{success}</AlertDescription>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {status.isConnected ? (
+                <>
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                  <span className="font-medium">연결됨</span>
+                  {status.deviceName && (
+                    <Badge variant="secondary">{status.deviceName}</Badge>
+                  )}
+                </>
+              ) : (
+                <>
+                  <XCircle className="h-5 w-5 text-gray-400" />
+                  <span className="text-gray-600">연결되지 않음</span>
+                </>
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              {status.isConnected ? (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowSettings(!showSettings)}
+                  >
+                    <Settings className="h-4 w-4 mr-1" />
+                    설정
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSync}
+                    disabled={syncing}
+                  >
+                    {syncing ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                    ) : (
+                      <Sync className="h-4 w-4 mr-1" />
+                    )}
+                    동기화
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleDisconnect}
+                    disabled={loading}
+                  >
+                    연동 해제
+                  </Button>
+                </>
+              ) : (
+                <Button onClick={handleConnect} disabled={loading}>
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Smartphone className="h-4 w-4 mr-2" />
+                  )}
+                  Google Fit 연결
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {status.isConnected && (
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-gray-600">마지막 동기화:</span>
+                <div className="font-medium">{formatLastSync(status.lastSyncAt)}</div>
+              </div>
+              <div>
+                <span className="text-gray-600">데이터 소스:</span>
+                <div className="font-medium">
+                  {status.syncStatus?.totalDataSources || 0}개
+                </div>
+              </div>
+            </div>
+          )}
+
+          {syncResult && (
+            <Alert className={syncResult.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
+              <CheckCircle className={`h-4 w-4 ${syncResult.success ? 'text-green-500' : 'text-red-500'}`} />
+              <AlertDescription>
+                <div className="space-y-1">
+                  <div>
+                    {syncResult.success 
+                      ? `${syncResult.syncedDataCount}개의 데이터 포인트가 동기화되었습니다.`
+                      : '일부 데이터 동기화에 실패했습니다.'
+                    }
+                  </div>
+                  {syncResult.dataTypesProcessed.length > 0 && (
+                    <div className="text-xs">
+                      처리된 데이터: {syncResult.dataTypesProcessed.map(getDataTypeLabel).join(', ')}
+                    </div>
+                  )}
+                  {syncResult.errors && syncResult.errors.length > 0 && (
+                    <div className="text-xs text-red-600">
+                      오류: {syncResult.errors.join(', ')}
+                    </div>
+                  )}
+                </div>
+              </AlertDescription>
             </Alert>
           )}
 
-          {devices.length === 0 ? (
-            <div className="text-center py-8">
-              <Smartphone className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Google Fit이 연결되지 않음
-              </h3>
-              <p className="text-gray-500 mb-4">
-                Google Fit을 연결하여 안드로이드 기기의 건강 데이터를 자동으로 동기화하세요.
-              </p>
-              <Button 
-                onClick={initiateGoogleFitConnection}
-                disabled={isConnecting}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                {isConnecting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    연결 중...
-                  </>
-                ) : (
-                  'Google Fit 연결'
-                )}
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {devices.map((device) => (
-                <div key={device.id} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <Smartphone className="h-5 w-5 text-blue-600" />
-                      <div>
-                        <h4 className="font-medium">{device.deviceName}</h4>
-                        <p className="text-sm text-gray-500">
-                          마지막 동기화: {formatLastSync(device.lastSyncAt)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={device.isActive ? "default" : "secondary"}>
-                        {device.isActive ? '활성' : '비활성'}
-                      </Badge>
-                      {connectionStatus?.isConnected && (
-                        <Badge variant="outline" className="text-green-600">
-                          연결됨
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-
-                  {connectionStatus && (
-                    <div className="mb-4">
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <span className="text-gray-500">토큰 상태:</span>
-                          <span className={`ml-2 ${connectionStatus.hasValidToken ? 'text-green-600' : 'text-red-600'}`}>
-                            {connectionStatus.hasValidToken ? '유효' : '만료됨'}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">데이터 소스:</span>
-                          <span className="ml-2">{connectionStatus.availableDataSources.length}개</span>
-                        </div>
-                      </div>
-                      
-                      {connectionStatus.errors.length > 0 && (
-                        <div className="mt-2">
-                          <p className="text-sm text-red-600">오류:</p>
-                          <ul className="text-sm text-red-600 list-disc list-inside">
-                            {connectionStatus.errors.map((error, index) => (
-                              <li key={index}>{error}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="mb-4">
-                    <h5 className="text-sm font-medium mb-2">동기화 데이터 타입</h5>
-                    <div className="flex flex-wrap gap-2">
-                      {device.syncSettings.dataTypes.map((dataType) => {
-                        const typeInfo = supportedDataTypes.find(t => t.id === dataType);
-                        return (
-                          <Badge key={dataType} variant="outline">
-                            {typeInfo?.name || dataType}
-                          </Badge>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => syncGoogleFitData(device.id)}
-                      disabled={isSyncing || !connectionStatus?.isConnected}
-                      size="sm"
-                    >
-                      {isSyncing ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          동기화 중...
-                        </>
-                      ) : (
-                        <>
-                          <RefreshCw className="mr-2 h-4 w-4" />
-                          수동 동기화
-                        </>
-                      )}
-                    </Button>
-                    
-                    <Button
-                      onClick={() => checkConnectionStatus(device.id)}
-                      variant="outline"
-                      size="sm"
-                    >
-                      상태 확인
-                    </Button>
-                    
-                    <Button
-                      onClick={() => disconnectGoogleFit(device.id)}
-                      variant="outline"
-                      size="sm"
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      연동 해제
-                    </Button>
+          {showSettings && status.isConnected && status.syncSettings && (
+            <div className="border rounded-lg p-4 space-y-3">
+              <h4 className="font-medium">동기화 설정</h4>
+              
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-600">자동 동기화:</span>
+                  <div className="font-medium">
+                    {status.syncSettings.autoSync ? '활성화' : '비활성화'}
                   </div>
                 </div>
-              ))}
+                <div>
+                  <span className="text-gray-600">동기화 간격:</span>
+                  <div className="font-medium">{status.syncSettings.syncInterval}분</div>
+                </div>
+              </div>
+
+              <div>
+                <span className="text-gray-600 text-sm">동기화 데이터 타입:</span>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {status.syncSettings.dataTypes.map((dataType) => (
+                    <Badge key={dataType} variant="outline" className="text-xs">
+                      {getDataTypeLabel(dataType)}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <h4 className="font-medium text-blue-900 mb-2">Google Fit 지원 데이터</h4>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-              {supportedDataTypes.map((type) => (
-                <div key={type.id} className="flex justify-between">
-                  <span className="text-blue-800">{type.name}</span>
-                  <span className="text-blue-600">{type.unit}</span>
-                </div>
-              ))}
+          {status.isConnected && status.syncStatus && (
+            <div className="border rounded-lg p-4">
+              <h4 className="font-medium mb-2">사용 가능한 데이터</h4>
+              <div className="flex flex-wrap gap-1">
+                {status.syncStatus.availableDataTypes.map((dataType, index) => (
+                  <Badge key={index} variant="secondary" className="text-xs">
+                    {dataType}
+                  </Badge>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>

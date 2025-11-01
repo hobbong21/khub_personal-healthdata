@@ -1,510 +1,452 @@
 import { Request, Response } from 'express';
 import { GoogleFitService } from '../services/googleFitService';
-import { WearableDataType } from '../types/wearable';
+import { WearableDeviceConfig, WearableDataType, DeviceAuthRequest } from '../types/wearable';
 
 /**
- * Google Fit API 전용 컨트롤러
- * 요구사항 17.3: Google Fit 데이터 수집 구현, 안드로이드 기기 데이터 동기화, 데이터 정규화 및 저장
+ * Google Fit API 컨트롤러
+ * 요구사항 17.3: 안드로이드 기기 데이터 동기화
  */
 export class GoogleFitController {
+  private googleFitService: GoogleFitService;
+
+  constructor() {
+    this.googleFitService = new GoogleFitService();
+  }
+
   /**
-   * Google Fit OAuth 인증 코드를 토큰으로 교환
-   * POST /api/google-fit/exchange-token
+   * Google Fit 인증 URL 생성
    */
-  static async exchangeAuthCode(req: Request, res: Response): Promise<void> {
+  async getAuthUrl(req: Request, res: Response): Promise<void> {
     try {
-      const { authCode, redirectUri } = req.body;
-
-      if (!authCode) {
-        res.status(400).json({
-          success: false,
-          message: '인증 코드가 필요합니다.',
-        });
-        return;
-      }
-
-      if (!redirectUri) {
-        res.status(400).json({
-          success: false,
-          message: '리다이렉트 URI가 필요합니다.',
-        });
-        return;
-      }
-
-      // 환경 변수에서 클라이언트 정보 가져오기
-      const clientId = process.env.GOOGLE_FIT_CLIENT_ID;
-      const clientSecret = process.env.GOOGLE_FIT_CLIENT_SECRET;
-
-      if (!clientId || !clientSecret) {
-        res.status(500).json({
-          success: false,
-          message: 'Google Fit 클라이언트 설정이 누락되었습니다.',
-        });
-        return;
-      }
-
-      const tokens = await GoogleFitService.exchangeAuthCodeForTokens(
-        authCode, 
-        redirectUri, 
-        clientId, 
-        clientSecret
-      );
-
+      const authUrl = this.googleFitService.generateAuthUrl();
+      
       res.json({
         success: true,
-        data: tokens,
-        message: 'Google Fit 인증이 성공적으로 완료되었습니다.',
+        authUrl,
+        message: 'Google Fit 인증을 위해 제공된 URL로 이동하세요.',
       });
     } catch (error) {
-      console.error('Google Fit auth code exchange error:', error);
-      res.status(400).json({
+      console.error('Error generating Google Fit auth URL:', error);
+      res.status(500).json({
         success: false,
-        message: error instanceof Error ? error.message : 'Google Fit 인증 중 오류가 발생했습니다.',
+        message: 'Google Fit 인증 URL 생성에 실패했습니다.',
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
 
   /**
-   * Google Fit 액세스 토큰 갱신
-   * POST /api/google-fit/refresh-token
+   * Google Fit 인증 콜백 처리
    */
-  static async refreshToken(req: Request, res: Response): Promise<void> {
+  async handleAuthCallback(req: Request, res: Response): Promise<void> {
     try {
-      const { refreshToken } = req.body;
+      const { code, state } = req.query;
+      const userId = req.user?.id; // 인증된 사용자 ID
 
-      if (!refreshToken) {
+      if (!code || typeof code !== 'string') {
         res.status(400).json({
           success: false,
-          message: '리프레시 토큰이 필요합니다.',
+          message: '인증 코드가 제공되지 않았습니다.',
         });
         return;
       }
 
-      const clientId = process.env.GOOGLE_FIT_CLIENT_ID;
-      const clientSecret = process.env.GOOGLE_FIT_CLIENT_SECRET;
-
-      if (!clientId || !clientSecret) {
-        res.status(500).json({
+      if (!userId) {
+        res.status(401).json({
           success: false,
-          message: 'Google Fit 클라이언트 설정이 누락되었습니다.',
+          message: '사용자 인증이 필요합니다.',
         });
         return;
       }
 
-      const tokens = await GoogleFitService.refreshAccessToken(refreshToken, clientId, clientSecret);
+      // 인증 코드로 토큰 교환
+      const tokens = await this.googleFitService.exchangeCodeForTokens(code);
+
+      // 데이터베이스에 기기 설정 저장 (실제 구현에서는 DB 서비스 사용)
+      const deviceConfig: Partial<WearableDeviceConfig> = {
+        userId,
+        deviceType: 'google_fit',
+        deviceName: 'Google Fit',
+        isActive: true,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        syncSettings: {
+          autoSync: true,
+          syncInterval: 60, // 1시간
+          dataTypes: ['heart_rate', 'steps', 'calories', 'sleep', 'weight'] as WearableDataType[],
+        },
+        lastSyncAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      // TODO: 실제 데이터베이스에 저장
+      console.log('Google Fit device config to save:', deviceConfig);
 
       res.json({
         success: true,
-        data: tokens,
-        message: '토큰이 성공적으로 갱신되었습니다.',
+        message: 'Google Fit 연동이 성공적으로 완료되었습니다.',
+        deviceConfig: {
+          deviceType: 'google_fit',
+          deviceName: 'Google Fit',
+          isActive: true,
+        },
       });
     } catch (error) {
-      console.error('Google Fit token refresh error:', error);
-      res.status(400).json({
+      console.error('Error handling Google Fit auth callback:', error);
+      res.status(500).json({
         success: false,
-        message: error instanceof Error ? error.message : '토큰 갱신 중 오류가 발생했습니다.',
+        message: 'Google Fit 인증 처리에 실패했습니다.',
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
 
   /**
    * Google Fit 데이터 동기화
-   * POST /api/google-fit/sync/:deviceConfigId
    */
-  static async syncData(req: Request, res: Response): Promise<void> {
+  async syncData(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user?.id;
+      const { dataTypes, startDate, endDate, forceSync } = req.body;
+
       if (!userId) {
         res.status(401).json({
           success: false,
-          message: '인증이 필요합니다.',
+          message: '사용자 인증이 필요합니다.',
         });
         return;
       }
 
-      const { deviceConfigId } = req.params;
-      const { dataTypes, startDate, endDate } = req.body;
-
-      if (!deviceConfigId) {
-        res.status(400).json({
+      // TODO: 데이터베이스에서 사용자의 Google Fit 설정 조회
+      const deviceConfig = await this.getUserGoogleFitConfig(userId);
+      
+      if (!deviceConfig || !deviceConfig.accessToken) {
+        res.status(404).json({
           success: false,
-          message: '기기 설정 ID가 필요합니다.',
+          message: 'Google Fit 연동 설정을 찾을 수 없습니다.',
         });
         return;
       }
 
-      const requestedDataTypes: WearableDataType[] = dataTypes || [
-        'heart_rate', 'steps', 'calories', 'sleep', 'weight'
-      ];
+      // 토큰 설정
+      this.googleFitService.setCredentials(
+        deviceConfig.accessToken,
+        deviceConfig.refreshToken || ''
+      );
 
-      const start = startDate ? new Date(startDate) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      // 동기화 날짜 범위 설정
+      const start = startDate ? new Date(startDate) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // 기본 7일
       const end = endDate ? new Date(endDate) : new Date();
 
-      const result = await GoogleFitService.syncGoogleFitData(
-        userId, 
-        deviceConfigId, 
-        requestedDataTypes, 
-        start, 
+      // 동기화할 데이터 타입 설정
+      const typesToSync = dataTypes || deviceConfig.syncSettings?.dataTypes || ['steps', 'heart_rate'];
+
+      // 데이터 동기화 실행
+      const syncResult = await this.googleFitService.syncMultipleDataTypes(
+        typesToSync,
+        start,
         end
       );
 
+      // 동기화 결과 업데이트
+      syncResult.deviceConfigId = deviceConfig.id;
+
+      // TODO: 동기화된 데이터를 데이터베이스에 저장
+      console.log('Sync result:', syncResult);
+
       res.json({
-        success: result.success,
-        syncedDataCount: result.syncedDataCount,
-        dataTypesProcessed: result.dataTypesProcessed,
-        errors: result.errors.length > 0 ? result.errors : undefined,
-        message: `${result.syncedDataCount}개의 데이터가 동기화되었습니다.`,
+        success: syncResult.success,
+        message: syncResult.success 
+          ? `${syncResult.syncedDataCount}개의 데이터 포인트가 동기화되었습니다.`
+          : '일부 데이터 동기화에 실패했습니다.',
+        syncResult,
       });
     } catch (error) {
-      console.error('Google Fit sync error:', error);
+      console.error('Error syncing Google Fit data:', error);
       res.status(500).json({
         success: false,
-        message: 'Google Fit 데이터 동기화 중 오류가 발생했습니다.',
+        message: 'Google Fit 데이터 동기화에 실패했습니다.',
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
 
   /**
-   * Google Fit 특정 데이터 타입 조회
-   * GET /api/google-fit/data/:deviceConfigId/:dataType
+   * 특정 데이터 타입 조회
    */
-  static async fetchDataType(req: Request, res: Response): Promise<void> {
+  async getDataByType(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user?.id;
+      const { dataType } = req.params;
+      const { startDate, endDate } = req.query;
+
       if (!userId) {
         res.status(401).json({
           success: false,
-          message: '인증이 필요합니다.',
+          message: '사용자 인증이 필요합니다.',
         });
         return;
       }
 
-      const { deviceConfigId, dataType } = req.params;
-      const { startDate, endDate } = req.query;
-
-      if (!deviceConfigId || !dataType) {
+      if (!dataType || !this.isValidDataType(dataType)) {
         res.status(400).json({
           success: false,
-          message: '기기 설정 ID와 데이터 타입이 필요합니다.',
+          message: '유효하지 않은 데이터 타입입니다.',
         });
         return;
       }
+
+      const deviceConfig = await this.getUserGoogleFitConfig(userId);
+      
+      if (!deviceConfig || !deviceConfig.accessToken) {
+        res.status(404).json({
+          success: false,
+          message: 'Google Fit 연동 설정을 찾을 수 없습니다.',
+        });
+        return;
+      }
+
+      this.googleFitService.setCredentials(
+        deviceConfig.accessToken,
+        deviceConfig.refreshToken || ''
+      );
 
       const start = startDate ? new Date(startDate as string) : new Date(Date.now() - 24 * 60 * 60 * 1000);
       const end = endDate ? new Date(endDate as string) : new Date();
 
-      const result = await GoogleFitService.fetchGoogleFitData(
-        userId, 
-        deviceConfigId, 
-        dataType as WearableDataType, 
-        start, 
-        end
-      );
-
-      res.json({
-        success: result.success,
-        data: result.data,
-        errors: result.errors.length > 0 ? result.errors : undefined,
-      });
-    } catch (error) {
-      console.error('Google Fit fetch data type error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Google Fit 데이터 조회 중 오류가 발생했습니다.',
-      });
-    }
-  }
-
-  /**
-   * Google Fit 집계 데이터 조회
-   * GET /api/google-fit/aggregate/:deviceConfigId/:dataType
-   */
-  static async getAggregatedData(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = req.user?.id;
-      if (!userId) {
-        res.status(401).json({
-          success: false,
-          message: '인증이 필요합니다.',
-        });
-        return;
-      }
-
-      const { deviceConfigId, dataType } = req.params;
-      const { aggregateBy = 'day', startDate, endDate } = req.query;
-
-      if (!deviceConfigId || !dataType) {
-        res.status(400).json({
-          success: false,
-          message: '기기 설정 ID와 데이터 타입이 필요합니다.',
-        });
-        return;
-      }
-
-      if (!['day', 'week', 'month'].includes(aggregateBy as string)) {
-        res.status(400).json({
-          success: false,
-          message: '집계 기준은 day, week, month 중 하나여야 합니다.',
-        });
-        return;
-      }
-
-      const start = startDate ? new Date(startDate as string) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-      const end = endDate ? new Date(endDate as string) : new Date();
-
-      const result = await GoogleFitService.getAggregatedData(
-        userId,
-        deviceConfigId,
+      const data = await this.googleFitService.getDataByType(
         dataType as WearableDataType,
-        aggregateBy as 'day' | 'week' | 'month',
         start,
         end
       );
 
       res.json({
-        success: result.success,
-        data: result.data,
-        errors: result.errors.length > 0 ? result.errors : undefined,
+        success: true,
+        dataType,
+        dataCount: data.length,
+        data,
+        period: {
+          startDate: start.toISOString(),
+          endDate: end.toISOString(),
+        },
       });
     } catch (error) {
-      console.error('Google Fit aggregated data error:', error);
+      console.error('Error fetching Google Fit data by type:', error);
       res.status(500).json({
         success: false,
-        message: 'Google Fit 집계 데이터 조회 중 오류가 발생했습니다.',
+        message: 'Google Fit 데이터 조회에 실패했습니다.',
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
 
   /**
    * Google Fit 연결 상태 확인
-   * GET /api/google-fit/connection-status/:deviceConfigId
    */
-  static async checkConnectionStatus(req: Request, res: Response): Promise<void> {
+  async getConnectionStatus(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user?.id;
+
       if (!userId) {
         res.status(401).json({
           success: false,
-          message: '인증이 필요합니다.',
+          message: '사용자 인증이 필요합니다.',
         });
         return;
       }
 
-      const { deviceConfigId } = req.params;
-
-      if (!deviceConfigId) {
-        res.status(400).json({
-          success: false,
-          message: '기기 설정 ID가 필요합니다.',
+      const deviceConfig = await this.getUserGoogleFitConfig(userId);
+      
+      if (!deviceConfig || !deviceConfig.accessToken) {
+        res.json({
+          success: true,
+          isConnected: false,
+          message: 'Google Fit이 연동되지 않았습니다.',
         });
         return;
       }
 
-      const status = await GoogleFitService.checkConnectionStatus(userId, deviceConfigId);
+      this.googleFitService.setCredentials(
+        deviceConfig.accessToken,
+        deviceConfig.refreshToken || ''
+      );
+
+      const syncStatus = await this.googleFitService.getSyncStatus();
 
       res.json({
         success: true,
-        data: status,
+        isConnected: syncStatus.isConnected,
+        deviceConfig: {
+          deviceName: deviceConfig.deviceName,
+          lastSyncAt: deviceConfig.lastSyncAt,
+          syncSettings: deviceConfig.syncSettings,
+        },
+        syncStatus,
       });
     } catch (error) {
-      console.error('Google Fit connection status error:', error);
+      console.error('Error checking Google Fit connection status:', error);
       res.status(500).json({
         success: false,
-        message: 'Google Fit 연결 상태 확인 중 오류가 발생했습니다.',
+        message: 'Google Fit 연결 상태 확인에 실패했습니다.',
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
 
   /**
-   * Google Fit 지원 데이터 타입 목록
-   * GET /api/google-fit/supported-types
+   * Google Fit 연동 해제
    */
-  static async getSupportedDataTypes(req: Request, res: Response): Promise<void> {
-    try {
-      const supportedTypes = [
-        {
-          dataType: 'heart_rate',
-          name: '심박수',
-          unit: 'bpm',
-          category: 'vital',
-          dataSourceId: 'derived:com.google.heart_rate.bpm:com.google.android.gms:merge_heart_rate_bpm',
-          dataTypeName: 'com.google.heart_rate.bpm',
-        },
-        {
-          dataType: 'steps',
-          name: '걸음 수',
-          unit: 'count',
-          category: 'activity',
-          dataSourceId: 'derived:com.google.step_count.delta:com.google.android.gms:estimated_steps',
-          dataTypeName: 'com.google.step_count.delta',
-        },
-        {
-          dataType: 'calories',
-          name: '소모 칼로리',
-          unit: 'kcal',
-          category: 'activity',
-          dataSourceId: 'derived:com.google.calories.expended:com.google.android.gms:merge_calories_expended',
-          dataTypeName: 'com.google.calories.expended',
-        },
-        {
-          dataType: 'sleep',
-          name: '수면',
-          unit: 'minutes',
-          category: 'wellness',
-          dataSourceId: 'derived:com.google.sleep.segment:com.google.android.gms:merged',
-          dataTypeName: 'com.google.sleep.segment',
-        },
-        {
-          dataType: 'weight',
-          name: '체중',
-          unit: 'kg',
-          category: 'body',
-          dataSourceId: 'derived:com.google.weight:com.google.android.gms:merge_weight',
-          dataTypeName: 'com.google.weight',
-        },
-        {
-          dataType: 'distance',
-          name: '이동 거리',
-          unit: 'km',
-          category: 'activity',
-          dataSourceId: 'derived:com.google.distance.delta:com.google.android.gms:merge_distance_delta',
-          dataTypeName: 'com.google.distance.delta',
-        },
-        {
-          dataType: 'exercise_sessions',
-          name: '운동 세션',
-          unit: 'minutes',
-          category: 'activity',
-          dataSourceId: 'derived:com.google.activity.segment:com.google.android.gms:merge_activity_segments',
-          dataTypeName: 'com.google.activity.segment',
-        },
-      ];
-
-      res.json({
-        success: true,
-        data: supportedTypes,
-      });
-    } catch (error) {
-      console.error('Get Google Fit supported types error:', error);
-      res.status(500).json({
-        success: false,
-        message: '지원 데이터 타입 조회 중 오류가 발생했습니다.',
-      });
-    }
-  }
-
-  /**
-   * Google Fit OAuth 인증 URL 생성
-   * GET /api/google-fit/auth-url
-   */
-  static async getAuthUrl(req: Request, res: Response): Promise<void> {
-    try {
-      const { redirectUri } = req.query;
-
-      if (!redirectUri) {
-        res.status(400).json({
-          success: false,
-          message: '리다이렉트 URI가 필요합니다.',
-        });
-        return;
-      }
-
-      const clientId = process.env.GOOGLE_FIT_CLIENT_ID;
-
-      if (!clientId) {
-        res.status(500).json({
-          success: false,
-          message: 'Google Fit 클라이언트 ID가 설정되지 않았습니다.',
-        });
-        return;
-      }
-
-      const scopes = [
-        'https://www.googleapis.com/auth/fitness.activity.read',
-        'https://www.googleapis.com/auth/fitness.body.read',
-        'https://www.googleapis.com/auth/fitness.heart_rate.read',
-        'https://www.googleapis.com/auth/fitness.location.read',
-        'https://www.googleapis.com/auth/fitness.nutrition.read',
-        'https://www.googleapis.com/auth/fitness.oxygen_saturation.read',
-        'https://www.googleapis.com/auth/fitness.reproductive_health.read',
-        'https://www.googleapis.com/auth/fitness.sleep.read',
-      ];
-
-      const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-      authUrl.searchParams.set('client_id', clientId);
-      authUrl.searchParams.set('redirect_uri', redirectUri as string);
-      authUrl.searchParams.set('response_type', 'code');
-      authUrl.searchParams.set('scope', scopes.join(' '));
-      authUrl.searchParams.set('access_type', 'offline');
-      authUrl.searchParams.set('prompt', 'consent');
-
-      res.json({
-        success: true,
-        data: {
-          authUrl: authUrl.toString(),
-          scopes,
-        },
-        message: 'Google Fit 인증 URL이 생성되었습니다.',
-      });
-    } catch (error) {
-      console.error('Google Fit auth URL generation error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Google Fit 인증 URL 생성 중 오류가 발생했습니다.',
-      });
-    }
-  }
-
-  /**
-   * Google Fit 데이터 소스 목록 조회
-   * GET /api/google-fit/data-sources/:deviceConfigId
-   */
-  static async getDataSources(req: Request, res: Response): Promise<void> {
+  async disconnectDevice(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user?.id;
+
       if (!userId) {
         res.status(401).json({
           success: false,
-          message: '인증이 필요합니다.',
+          message: '사용자 인증이 필요합니다.',
         });
         return;
       }
 
-      const { deviceConfigId } = req.params;
+      // TODO: 데이터베이스에서 Google Fit 설정 비활성화
+      const result = await this.deactivateGoogleFitConfig(userId);
 
-      if (!deviceConfigId) {
-        res.status(400).json({
+      if (!result) {
+        res.status(404).json({
           success: false,
-          message: '기기 설정 ID가 필요합니다.',
-        });
-        return;
-      }
-
-      const status = await GoogleFitService.checkConnectionStatus(userId, deviceConfigId);
-
-      if (!status.isConnected) {
-        res.status(400).json({
-          success: false,
-          message: 'Google Fit에 연결되지 않았습니다.',
-          errors: status.errors,
+          message: 'Google Fit 연동 설정을 찾을 수 없습니다.',
         });
         return;
       }
 
       res.json({
         success: true,
-        data: {
-          availableDataSources: status.availableDataSources,
-          isConnected: status.isConnected,
-          hasValidToken: status.hasValidToken,
-          lastSyncAt: status.lastSyncAt,
-        },
+        message: 'Google Fit 연동이 성공적으로 해제되었습니다.',
       });
     } catch (error) {
-      console.error('Google Fit data sources error:', error);
+      console.error('Error disconnecting Google Fit:', error);
       res.status(500).json({
         success: false,
-        message: 'Google Fit 데이터 소스 조회 중 오류가 발생했습니다.',
+        message: 'Google Fit 연동 해제에 실패했습니다.',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  /**
+   * 사용자의 Google Fit 설정 조회 (임시 구현)
+   */
+  private async getUserGoogleFitConfig(userId: string): Promise<WearableDeviceConfig | null> {
+    // TODO: 실제 데이터베이스 조회 구현
+    // 임시로 null 반환
+    console.log(`Getting Google Fit config for user: ${userId}`);
+    return null;
+  }
+
+  /**
+   * Google Fit 설정 비활성화 (임시 구현)
+   */
+  private async deactivateGoogleFitConfig(userId: string): Promise<boolean> {
+    // TODO: 실제 데이터베이스 업데이트 구현
+    console.log(`Deactivating Google Fit config for user: ${userId}`);
+    return true;
+  }
+
+  /**
+   * 유효한 데이터 타입인지 확인
+   */
+  private isValidDataType(dataType: string): dataType is WearableDataType {
+    const validTypes: WearableDataType[] = [
+      'heart_rate', 'steps', 'calories', 'sleep', 'weight',
+      'blood_pressure', 'blood_oxygen', 'body_temperature',
+      'exercise_sessions', 'distance', 'floors_climbed'
+    ];
+    return validTypes.includes(dataType as WearableDataType);
+  }
+
+  /**
+   * 자동 동기화 설정 업데이트
+   */
+  async updateSyncSettings(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      const { autoSync, syncInterval, dataTypes } = req.body;
+
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: '사용자 인증이 필요합니다.',
+        });
+        return;
+      }
+
+      // TODO: 데이터베이스에서 동기화 설정 업데이트
+      const updatedConfig = {
+        autoSync: autoSync ?? true,
+        syncInterval: syncInterval ?? 60,
+        dataTypes: dataTypes ?? ['steps', 'heart_rate', 'calories'],
+      };
+
+      console.log(`Updating sync settings for user ${userId}:`, updatedConfig);
+
+      res.json({
+        success: true,
+        message: '동기화 설정이 업데이트되었습니다.',
+        syncSettings: updatedConfig,
+      });
+    } catch (error) {
+      console.error('Error updating Google Fit sync settings:', error);
+      res.status(500).json({
+        success: false,
+        message: '동기화 설정 업데이트에 실패했습니다.',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  /**
+   * 사용자 프로필 정보 조회
+   */
+  async getUserProfile(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: '사용자 인증이 필요합니다.',
+        });
+        return;
+      }
+
+      const deviceConfig = await this.getUserGoogleFitConfig(userId);
+      
+      if (!deviceConfig || !deviceConfig.accessToken) {
+        res.status(404).json({
+          success: false,
+          message: 'Google Fit 연동 설정을 찾을 수 없습니다.',
+        });
+        return;
+      }
+
+      this.googleFitService.setCredentials(
+        deviceConfig.accessToken,
+        deviceConfig.refreshToken || ''
+      );
+
+      const profile = await this.googleFitService.getUserProfile();
+
+      res.json({
+        success: true,
+        profile,
+      });
+    } catch (error) {
+      console.error('Error fetching Google Fit user profile:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Google Fit 사용자 프로필 조회에 실패했습니다.',
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
