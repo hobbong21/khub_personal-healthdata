@@ -1,167 +1,91 @@
 import { Request, Response, NextFunction } from 'express';
-import { redisService, CACHE_TTL } from '../config/redis';
+import Redis from 'redis';
 
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-  };
-}
+// Redis 클라이언트 설정
+const redis = Redis.createClient({
+  host: process.env.REDIS_HOST || 'localhost',
+  port: parseInt(process.env.REDIS_PORT || '6379'),
+  password: process.env.REDIS_PASSWORD,
+  retryDelayOnFailover: 100,
+  maxRetriesPerRequest: 3
+});
 
-interface CacheOptions {
-  ttl?: number;
-  keyGenerator?: (req: AuthenticatedRequest) => string;
-  skipCache?: (req: AuthenticatedRequest) => boolean;
-}
+redis.on('error', (err) => {
+  console.error('Redis 연결 오류:', err);
+});
 
-/**
- * 캐시 미들웨어 생성기
- */
-export function createCacheMiddleware(options: CacheOptions = {}) {
-  return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    // 캐시를 건너뛸 조건 확인
-    if (options.skipCache && options.skipCache(req)) {
+redis.on('connect', () => {
+  console.log('✅ Redis 연결 성공');
+});
+
+// 캐시 키 생성 함수
+const generateCacheKey = (req: Request): string => {
+  const { method, originalUrl, query, user } = req;
+  const userId = (user as any)?.id || 'anonymous';
+  return `${method}:${originalUrl}:${JSON.stringify(query)}:user:${userId}`;
+};
+
+// 캐시 미들웨어
+export const cacheMiddleware = (ttl: number = 300) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    // GET 요청만 캐싱
+    if (req.method !== 'GET') {
       return next();
     }
 
-    // 사용자 인증 확인
-    if (!req.user?.id) {
-      return next();
-    }
-
-    // 캐시 키 생성
-    const cacheKey = options.keyGenerator 
-      ? options.keyGenerator(req)
-      : generateDefaultCacheKey(req);
+    const cacheKey = generateCacheKey(req);
 
     try {
       // 캐시에서 데이터 조회
-      const cachedData = await redisService.getJSON(cacheKey);
+      const cachedData = await redis.get(cacheKey);
       
       if (cachedData) {
-        console.log(`Cache hit for key: ${cacheKey}`);
-        return res.json(cachedData);
+        console.log(`📦 캐시 히트: ${cacheKey}`);
+        return res.json(JSON.parse(cachedData));
       }
 
-      // 캐시 미스 - 원본 응답을 캐시에 저장
-      const originalJson = res.json.bind(res);
+      // 캐시 미스 - 원본 응답 캐싱
+      const originalSend = res.json;
       res.json = function(data: any) {
-        // 성공적인 응답만 캐시
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          const ttl = options.ttl || CACHE_TTL.DASHBOARD;
-          redisService.setJSON(cacheKey, data, ttl).catch(err => {
-            console.error('Failed to cache response:', err);
-          });
-          console.log(`Cached response for key: ${cacheKey}`);
+        // 성공적인 응답만 캐싱
+        if (res.statusCode === 200) {
+          redis.setex(cacheKey, ttl, JSON.stringify(data))
+            .catch(err => console.error('캐시 저장 오류:', err));
+          console.log(`💾 캐시 저장: ${cacheKey}`);
         }
-        return originalJson(data);
+        
+        return originalSend.call(this, data);
       };
 
       next();
     } catch (error) {
-      console.error('Cache middleware error:', error);
-      // 캐시 오류 시에도 요청 처리 계속
+      console.error('캐시 미들웨어 오류:', error);
       next();
     }
   };
-}
+};
 
-/**
- * 기본 캐시 키 생성
- */
-function generateDefaultCacheKey(req: AuthenticatedRequest): string {
-  const userId = req.user!.id;
-  const path = req.path;
-  const query = new URLSearchParams(req.query as Record<string, string>).toString();
-  
-  return `${path}:${userId}${query ? `:${query}` : ''}`;
-}
-
-/**
- * 대시보드 캐시 미들웨어
- */
-export const dashboardCache = createCacheMiddleware({
-  ttl: CACHE_TTL.DASHBOARD,
-  keyGenerator: (req) => redisService.getDashboardCacheKey(req.user!.id),
-});
-
-/**
- * 트렌드 캐시 미들웨어
- */
-export const trendsCache = createCacheMiddleware({
-  ttl: CACHE_TTL.TRENDS,
-  keyGenerator: (req) => {
-    const userId = req.user!.id;
-    const period = (req.query.period as string) || 'monthly';
-    const days = parseInt((req.query.days as string) || '30');
-    return redisService.getTrendsCacheKey(userId, period, days);
-  },
-});
-
-/**
- * 목표 캐시 미들웨어
- */
-export const goalsCache = createCacheMiddleware({
-  ttl: CACHE_TTL.GOALS,
-  keyGenerator: (req) => redisService.getGoalsCacheKey(req.user!.id),
-});
-
-/**
- * 건강 요약 캐시 미들웨어
- */
-export const healthSummaryCache = createCacheMiddleware({
-  ttl: CACHE_TTL.HEALTH_SUMMARY,
-  keyGenerator: (req) => `health:summary:${req.user!.id}`,
-});
-
-/**
- * 캐시 무효화 미들웨어
- */
-export function createCacheInvalidationMiddleware(patterns: string[] | ((req: AuthenticatedRequest) => string[])) {
-  return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    const originalJson = res.json.bind(res);
-    
-    res.json = function(data: any) {
-      // 성공적인 응답 후 캐시 무효화
-      if (res.statusCode >= 200 && res.statusCode < 300 && req.user?.id) {
-        const invalidationPatterns = typeof patterns === 'function' 
-          ? patterns(req) 
-          : patterns;
-
-        Promise.all(
-          invalidationPatterns.map(pattern => 
-            redisService.invalidatePattern(pattern.replace('{userId}', req.user!.id))
-          )
-        ).catch(err => {
-          console.error('Failed to invalidate cache:', err);
-        });
-      }
-      
-      return originalJson(data);
-    };
-
-    next();
-  };
-}
-
-/**
- * 건강 데이터 변경 시 캐시 무효화
- */
-export const invalidateHealthCache = createCacheInvalidationMiddleware([
-  'dashboard:{userId}*',
-  'trends:{userId}*',
-  'goals:{userId}*',
-  'health:{userId}*',
-]);
-
-/**
- * 조건부 캐시 미들웨어 (개발 환경에서는 캐시 비활성화)
- */
-export function conditionalCache(middleware: any) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    if (process.env.NODE_ENV === 'development' && process.env.DISABLE_CACHE === 'true') {
-      return next();
+// 캐시 무효화 함수
+export const invalidateCache = async (pattern: string): Promise<void> => {
+  try {
+    const keys = await redis.keys(pattern);
+    if (keys.length > 0) {
+      await redis.del(...keys);
+      console.log(`🗑️  캐시 무효화: ${keys.length}개 키 삭제`);
     }
-    return middleware(req, res, next);
-  };
-}
+  } catch (error) {
+    console.error('캐시 무효화 오류:', error);
+  }
+};
+
+// 사용자별 캐시 무효화
+export const invalidateUserCache = async (userId: string): Promise<void> => {
+  await invalidateCache(`*:user:${userId}`);
+};
+
+// 특정 엔드포인트 캐시 무효화
+export const invalidateEndpointCache = async (endpoint: string): Promise<void> => {
+  await invalidateCache(`*:${endpoint}:*`);
+};
+
+export default redis;

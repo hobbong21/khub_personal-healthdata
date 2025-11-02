@@ -1,6 +1,9 @@
-# 구현 계획
+# Implementation Plan
 
 - [x] 1. 프로젝트 초기 설정 및 기본 구조
+
+
+
   - React + TypeScript 프론트엔드 프로젝트 생성
   - Node.js + Express + TypeScript 백엔드 프로젝트 생성
   - PostgreSQL 데이터베이스 설정 및 연결

@@ -1,12 +1,23 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { cn } from '../../utils/cn';
 import './Sidebar.css';
+
+interface MenuItem {
+  id: string;
+  label: string;
+  path: string;
+  icon: string;
+  badge?: string | null;
+  submenu?: { label: string; path: string }[];
+}
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['health', 'medication']);
 
-  const menuItems = [
+  const menuItems: MenuItem[] = [
     {
       id: 'dashboard',
       label: '대시보드',
@@ -22,9 +33,7 @@ const Sidebar: React.FC = () => {
       badge: '새로움',
       submenu: [
         { label: '바이탈 사인', path: '/health/vitals' },
-        { label: '건강 일지', path: '/health/journal' },
-        { label: '운동 기록', path: '/health/exercise' },
-        { label: '수면 패턴', path: '/health/sleep' }
+        { label: '건강 일지', path: '/health/journal' }
       ]
     },
     {
@@ -41,10 +50,7 @@ const Sidebar: React.FC = () => {
       icon: '💊',
       badge: '3',
       submenu: [
-        { label: '복용 중인 약물', path: '/medication/current' },
-        { label: '복용 일정', path: '/medication/schedule' },
-        { label: '부작용 기록', path: '/medication/side-effects' },
-        { label: '약물 상호작용', path: '/medication/interactions' }
+        { label: '복용 일정', path: '/medication/schedule' }
       ]
     },
     {
@@ -66,12 +72,7 @@ const Sidebar: React.FC = () => {
       label: '유전체 분석',
       path: '/genomics',
       icon: '🧬',
-      badge: null,
-      submenu: [
-        { label: '유전자 데이터', path: '/genomics/data' },
-        { label: '질병 위험도', path: '/genomics/risk' },
-        { label: '약물 반응성', path: '/genomics/pharmacogenomics' }
-      ]
+      badge: null
     },
     {
       id: 'recommendations',
@@ -85,50 +86,28 @@ const Sidebar: React.FC = () => {
       label: 'AI 인사이트',
       path: '/ai-insights',
       icon: '🧠',
-      badge: 'AI',
-      submenu: [
-        { label: '건강 예측', path: '/ai-insights/predictions' },
-        { label: '이상 징후 감지', path: '/ai-insights/anomaly-detection' },
-        { label: '건강 점수', path: '/ai-insights/health-score' }
-      ]
+      badge: 'AI'
     },
     {
       id: 'wearable',
       label: '웨어러블 기기',
       path: '/wearable',
       icon: '⌚',
-      badge: null,
-      submenu: [
-        { label: '기기 관리', path: '/wearable/devices' },
-        { label: '동기화 상태', path: '/wearable/sync' },
-        { label: '데이터 분석', path: '/wearable/analytics' }
-      ]
+      badge: null
     },
     {
       id: 'nlp',
-      label: 'AI 건강 어시스턴트',
+      label: 'AI 어시스턴트',
       path: '/nlp',
       icon: '💬',
-      badge: 'NLP',
-      submenu: [
-        { label: '건강 상담 챗봇', path: '/nlp/chatbot' },
-        { label: '의료 문서 분석', path: '/nlp/documents' },
-        { label: '증상 분석', path: '/nlp/symptoms' },
-        { label: '사용 통계', path: '/nlp/stats' }
-      ]
+      badge: 'NLP'
     },
     {
       id: 'remote-monitoring',
       label: '원격 모니터링',
       path: '/remote-monitoring',
       icon: '📡',
-      badge: 'Live',
-      submenu: [
-        { label: '실시간 모니터링', path: '/remote-monitoring/live' },
-        { label: '건강 알림', path: '/remote-monitoring/alerts' },
-        { label: '의료진 공유', path: '/remote-monitoring/sharing' },
-        { label: '텔레헬스', path: '/remote-monitoring/telehealth' }
-      ]
+      badge: 'Live'
     },
     {
       id: 'profile',
@@ -138,8 +117,6 @@ const Sidebar: React.FC = () => {
       badge: null
     }
   ];
-
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['health', 'medication']);
 
   const toggleSubmenu = (menuId: string) => {
     setExpandedMenus(prev => 
@@ -153,99 +130,140 @@ const Sidebar: React.FC = () => {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
+  const isSubmenuActive = (submenu: { label: string; path: string }[]) => {
+    return submenu.some(item => isActive(item.path));
+  };
+
   return (
-    <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
-      <div className="sidebar-header">
-        <button 
-          className="sidebar-toggle"
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          title={isCollapsed ? '사이드바 확장' : '사이드바 축소'}
-        >
-          {isCollapsed ? '→' : '←'}
-        </button>
-        
+    <aside className={cn(
+      'bg-primary border-r border-light h-full transition-all duration-300',
+      isCollapsed ? 'w-16' : 'w-64'
+    )}>
+      <div className="flex flex-col h-full">
+        {/* Collapse Toggle */}
+        <div className="p-4 border-b border-light">
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="w-full flex items-center justify-center p-2 text-gray-600 hover:text-primary-600 hover:bg-secondary rounded-lg transition-colors"
+          >
+            <span className="text-lg">
+              {isCollapsed ? '→' : '←'}
+            </span>
+            {!isCollapsed && (
+              <span className="ml-2 text-sm font-medium">메뉴 접기</span>
+            )}
+          </button>
+        </div>
+
+        {/* Navigation Menu */}
+        <nav className="flex-1 overflow-y-auto py-4">
+          <div className="space-y-1 px-3">
+            {menuItems.map((item) => (
+              <div key={item.id}>
+                {/* Main Menu Item */}
+                <div className="relative">
+                  {item.submenu ? (
+                    <button
+                      onClick={() => toggleSubmenu(item.id)}
+                      className={cn(
+                        'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors',
+                        isActive(item.path) || isSubmenuActive(item.submenu)
+                          ? 'bg-primary-100 text-primary-700 font-medium'
+                          : 'text-gray-700 hover:bg-secondary hover:text-primary-600'
+                      )}
+                    >
+                      <span className="text-lg flex-shrink-0">{item.icon}</span>
+                      {!isCollapsed && (
+                        <>
+                          <span className="flex-1 text-sm">{item.label}</span>
+                          {item.badge && (
+                            <span className={cn(
+                              'px-2 py-0.5 text-xs rounded-full font-medium',
+                              item.badge === 'AI' || item.badge === 'NLP' 
+                                ? 'bg-purple-100 text-purple-700'
+                                : item.badge === 'Live'
+                                ? 'bg-green-100 text-green-700'
+                                : item.badge === '새로움'
+                                ? 'bg-blue-100 text-blue-700'
+                                : 'bg-red-100 text-red-700'
+                            )}>
+                              {item.badge}
+                            </span>
+                          )}
+                          <span className="text-xs text-gray-400">
+                            {expandedMenus.includes(item.id) ? '▼' : '▶'}
+                          </span>
+                        </>
+                      )}
+                    </button>
+                  ) : (
+                    <Link
+                      to={item.path}
+                      className={cn(
+                        'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
+                        isActive(item.path)
+                          ? 'bg-primary-100 text-primary-700 font-medium'
+                          : 'text-gray-700 hover:bg-secondary hover:text-primary-600'
+                      )}
+                    >
+                      <span className="text-lg flex-shrink-0">{item.icon}</span>
+                      {!isCollapsed && (
+                        <>
+                          <span className="flex-1 text-sm">{item.label}</span>
+                          {item.badge && (
+                            <span className={cn(
+                              'px-2 py-0.5 text-xs rounded-full font-medium',
+                              item.badge === 'AI' || item.badge === 'NLP' 
+                                ? 'bg-purple-100 text-purple-700'
+                                : item.badge === 'Live'
+                                ? 'bg-green-100 text-green-700'
+                                : item.badge === '새로움'
+                                ? 'bg-blue-100 text-blue-700'
+                                : 'bg-red-100 text-red-700'
+                            )}>
+                              {item.badge}
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </Link>
+                  )}
+                </div>
+
+                {/* Submenu */}
+                {item.submenu && expandedMenus.includes(item.id) && !isCollapsed && (
+                  <div className="ml-6 mt-1 space-y-1">
+                    {item.submenu.map((subItem) => (
+                      <Link
+                        key={subItem.path}
+                        to={subItem.path}
+                        className={cn(
+                          'block px-3 py-2 text-sm rounded-lg transition-colors',
+                          isActive(subItem.path)
+                            ? 'bg-primary-50 text-primary-600 font-medium'
+                            : 'text-gray-600 hover:bg-secondary hover:text-primary-600'
+                        )}
+                      >
+                        {subItem.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </nav>
+
+        {/* Footer */}
         {!isCollapsed && (
-          <div className="sidebar-title">
-            <h3>메뉴</h3>
+          <div className="p-4 border-t border-light">
+            <div className="text-xs text-gray-500 text-center">
+              <div className="font-medium">K-hub v1.0</div>
+              <div>개인 건강 플랫폼</div>
+            </div>
           </div>
         )}
       </div>
-
-      <nav className="sidebar-nav">
-        <ul className="nav-list">
-          {menuItems.map((item) => (
-            <li key={item.id} className="nav-item">
-              <div className="nav-item-wrapper">
-                <Link
-                  to={item.path}
-                  className={`nav-link ${isActive(item.path) ? 'active' : ''}`}
-                  onClick={() => item.submenu && toggleSubmenu(item.id)}
-                >
-                  <div className="nav-icon">
-                    {item.icon}
-                  </div>
-                  
-                  {!isCollapsed && (
-                    <>
-                      <span className="nav-label">{item.label}</span>
-                      
-                      {item.badge && (
-                        <span className={`nav-badge ${
-                          item.badge === 'AI' ? 'ai' : 
-                          item.badge === 'NLP' ? 'nlp' :
-                          item.badge === '새로움' ? 'new' : 'count'
-                        }`}>
-                          {item.badge}
-                        </span>
-                      )}
-                      
-                      {item.submenu && (
-                        <span className={`nav-arrow ${expandedMenus.includes(item.id) ? 'expanded' : ''}`}>
-                          ▼
-                        </span>
-                      )}
-                    </>
-                  )}
-                </Link>
-
-                {item.submenu && !isCollapsed && expandedMenus.includes(item.id) && (
-                  <ul className="submenu">
-                    {item.submenu.map((subItem) => (
-                      <li key={subItem.path} className="submenu-item">
-                        <Link
-                          to={subItem.path}
-                          className={`submenu-link ${isActive(subItem.path) ? 'active' : ''}`}
-                        >
-                          <span className="submenu-dot">•</span>
-                          {subItem.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      </nav>
-
-      {!isCollapsed && (
-        <div className="sidebar-footer">
-          <div className="health-summary">
-            <h4>오늘의 건강</h4>
-            <div className="health-stats">
-              <div className="stat">
-                <span className="stat-label">걸음 수</span>
-                <span className="stat-value">8,432</span>
-              </div>
-              <div className="stat">
-                <span className="stat-label">수분 섭취</span>
-                <span className="stat-value">1.2L</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </aside>
   );
 };

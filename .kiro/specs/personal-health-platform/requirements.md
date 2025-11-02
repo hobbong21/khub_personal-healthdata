@@ -1,10 +1,10 @@
-# 요구사항 문서
+# Requirements Document
 
-## 개요
+## Introduction
 
 개인의 건강 데이터를 체계적으로 수집, 저장, 분석하여 맞춤형 건강 관리 및 질병 예측 서비스를 제공하는 통합 플랫폼입니다. AI 기반 인사이트를 통한 평생 건강 데이터 누적 및 추적을 위한 통합 솔루션 역할을 합니다.
 
-## 용어 정의
+## Glossary
 
 - **건강_플랫폼**: 통합 개인 건강 데이터 관리 시스템
 - **사용자_프로필**: 개인 및 건강 정보를 포함하는 개별 사용자 계정
@@ -29,207 +29,208 @@
 - **웨어러블_기기**: 신체에 착용하여 건강 데이터를 수집하는 장치
 - **텔레헬스**: 원격 의료 서비스 및 디지털 헬스케어 플랫폼
 
-## 요구사항
+## Requirements
 
-### 요구사항 1
+### Requirement 1
 
-**사용자 스토리:** 건강을 관리하는 개인으로서, 개인 건강 프로필을 생성하고 관리하고 싶습니다. 그래야 모든 건강 정보를 한 곳에서 종합적으로 유지할 수 있습니다.
+**User Story:** 건강을 관리하는 개인으로서, 개인 건강 프로필을 생성하고 관리하고 싶습니다. 그래야 모든 건강 정보를 한 곳에서 종합적으로 유지할 수 있습니다.
 
-#### 수락 기준
+#### Acceptance Criteria
 
-1. 건강_플랫폼은 이름, 생년월일, 성별, 혈액형을 포함한 기본 개인 정보를 저장해야 합니다
-2. 건강_플랫폼은 키, 몸무게를 포함한 신체 정보를 기록하고 BMI를 자동으로 계산해야 합니다
-3. 건강_플랫폼은 흡연 상태, 음주, 운동 빈도, 식습관을 포함한 생활 습관을 수집해야 합니다
-4. 사용자가 몸무게를 업데이트할 때, 건강_플랫폼은 BMI를 자동으로 재계산해야 합니다
-5. 건강_플랫폼은 저장하기 전에 모든 필수 프로필 필드를 검증해야 합니다
+1. THE 건강_플랫폼 SHALL store basic personal information including name, birth date, gender, and blood type
+2. THE 건강_플랫폼 SHALL record physical information including height and weight and automatically calculate BMI
+3. THE 건강_플랫폼 SHALL collect lifestyle habits including smoking status, alcohol consumption, exercise frequency, and dietary habits
+4. WHEN a user updates weight, THE 건강_플랫폼 SHALL automatically recalculate BMI
+5. THE 건강_플랫폼 SHALL validate all required profile fields before storing
 
-### 요구사항 2
+### Requirement 2
 
-**사용자 스토리:** 건강을 모니터링하는 사용자로서, 바이탈 사인을 정기적으로 추적하고 싶습니다. 그래야 시간에 따른 건강 트렌드를 관찰할 수 있습니다.
+**User Story:** 건강을 모니터링하는 사용자로서, 바이탈 사인을 정기적으로 추적하고 싶습니다. 그래야 시간에 따른 건강 트렌드를 관찰할 수 있습니다.
 
-#### 수락 기준
+#### Acceptance Criteria
 
-1. 건강_플랫폼은 수축기 및 이완기 값으로 혈압 측정값을 기록해야 합니다
-2. 건강_플랫폼은 맥박수, 체온, 혈당 수치를 추적해야 합니다
-3. 건강_플랫폼은 체중 변화를 그래프 형태로 표시해야 합니다
-4. 건강_플랫폼은 일별, 주별, 월별 트렌드 시각화를 제공해야 합니다
-5. 바이탈 사인이 입력될 때, 건강_플랫폼은 각 측정값에 타임스탬프를 기록해야 합니다
+1. THE 건강_플랫폼 SHALL record blood pressure measurements with systolic and diastolic values
+2. THE 건강_플랫폼 SHALL track heart rate, body temperature, and blood glucose levels
+3. THE 건강_플랫폼 SHALL display weight changes in graphical format
+4. THE 건강_플랫폼 SHALL provide daily, weekly, and monthly trend visualizations
+5. WHEN vital signs are entered, THE 건강_플랫폼 SHALL record timestamps for each measurement
 
-### 요구사항 3
+### Requirement 3
 
-**사용자 스토리:** 일일 건강을 관리하는 사람으로서, 건강 일지를 유지하고 싶습니다. 그래야 증상과 일일 상태를 체계적으로 기록할 수 있습니다.
+**User Story:** 일일 건강을 관리하는 사람으로서, 건강 일지를 유지하고 싶습니다. 그래야 증상과 일일 상태를 체계적으로 기록할 수 있습니다.
 
-#### 수락 기준
+#### Acceptance Criteria
 
-1. 건강_플랫폼은 일일 컨디션 기록을 위한 5점 척도를 제공해야 합니다
-2. 건강_플랫폼은 통증 수준, 피로도, 수면 질을 포함한 증상 기록을 허용해야 합니다
-3. 건강_플랫폼은 영양제 및 건강식품 섭취를 추적해야 합니다
-4. 건강_플랫폼은 운동 활동을 종류, 시간, 강도와 함께 기록해야 합니다
-5. 일지 항목이 작성될 때, 건강_플랫폼은 현재 날짜와 연결해야 합니다
+1. THE 건강_플랫폼 SHALL provide a 5-point scale for recording daily condition
+2. THE 건강_플랫폼 SHALL allow symptom recording including pain levels, fatigue, and sleep quality
+3. THE 건강_플랫폼 SHALL track supplement and health food intake
+4. THE 건강_플랫폼 SHALL record exercise activities with type, duration, and intensity
+5. WHEN journal entries are created, THE 건강_플랫폼 SHALL associate them with the current date
 
-### 요구사항 4
+### Requirement 4
 
-**사용자 스토리:** 건강 인사이트를 원하는 사용자로서, 종합적인 대시보드를 보고 싶습니다. 그래야 현재 건강 상태와 트렌드를 빠르게 이해할 수 있습니다.
+**User Story:** 건강 인사이트를 원하는 사용자로서, 종합적인 대시보드를 보고 싶습니다. 그래야 현재 건강 상태와 트렌드를 빠르게 이해할 수 있습니다.
 
-#### 수락 기준
+#### Acceptance Criteria
 
-1. 건강_플랫폼은 주요 건강 지표 요약 카드를 표시해야 합니다
-2. 건강_플랫폼은 최근 건강 트렌드 변화를 보여줘야 합니다
-3. 건강_플랫폼은 체중 관리 및 운동 목표에 대한 목표 달성률을 계산하고 표시해야 합니다
-4. 건강_플랫폼은 주요 지표에 대한 건강 트렌드 차트를 제공해야 합니다
-5. 건강_플랫폼은 오늘의 건강 체크리스트와 예정된 진료 일정을 표시해야 합니다
+1. THE 건강_플랫폼 SHALL display key health indicator summary cards
+2. THE 건강_플랫폼 SHALL show recent health trend changes
+3. THE 건강_플랫폼 SHALL calculate and display goal achievement rates for weight management and exercise targets
+4. THE 건강_플랫폼 SHALL provide health trend charts for key indicators
+5. THE 건강_플랫폼 SHALL display today's health checklist and scheduled medical appointments
 
-### 요구사항 5
+### Requirement 5
 
-**사용자 스토리:** 병력을 관리하는 환자로서, 종합적인 진료 기록을 유지하고 싶습니다. 그래야 모든 의료진과의 상호작용과 치료를 추적할 수 있습니다.
+**User Story:** 병력을 관리하는 환자로서, 종합적인 진료 기록을 유지하고 싶습니다. 그래야 모든 의료진과의 상호작용과 치료를 추적할 수 있습니다.
 
-#### 수락 기준
+#### Acceptance Criteria
 
-1. 건강_플랫폼은 병원 방문 내역을 타임라인 형태로 저장해야 합니다
-2. 건강_플랫폼은 ICD-10 코드 기반 진단명을 기록해야 합니다
-3. 건강_플랫폼은 처방 약물 정보, 의사 소견 메모, 진료비를 저장해야 합니다
-4. 건강_플랫폼은 진료과 및 날짜 범위별로 기록을 필터링해야 합니다
-5. 건강_플랫폼은 의료진과의 커뮤니케이션 히스토리를 추적해야 합니다
+1. THE 건강_플랫폼 SHALL store hospital visit history in timeline format
+2. THE 건강_플랫폼 SHALL record diagnoses based on ICD-10 codes
+3. THE 건강_플랫폼 SHALL store prescription medication information, doctor's notes, and medical costs
+4. THE 건강_플랫폼 SHALL filter records by medical department and date range
+5. THE 건강_플랫폼 SHALL track communication history with medical professionals
 
-### 요구사항 6
+### Requirement 6
 
-**사용자 스토리:** 정기적으로 약을 복용하는 사람으로서, 복약 일정을 관리하고 싶습니다. 그래야 적절한 복약 순응도를 보장할 수 있습니다.
+**User Story:** 정기적으로 약을 복용하는 사람으로서, 복약 일정을 관리하고 싶습니다. 그래야 적절한 복약 순응도를 보장할 수 있습니다.
 
-#### 수락 기준
+#### Acceptance Criteria
 
-1. 건강_플랫폼은 아침, 점심, 저녁에 대한 일일 복약 일정을 생성해야 합니다
-2. 건강_플랫폼은 복약 스케줄 알림 기능을 제공해야 합니다
-3. 건강_플랫폼은 약물 상호작용 경고를 표시해야 합니다
-4. 건강_플랫폼은 부작용 기록 및 약물 이력을 추적해야 합니다
-5. 약물이 복용될 때, 건강_플랫폼은 타임스탬프와 복용량 확인을 기록해야 합니다
+1. THE 건강_플랫폼 SHALL create daily medication schedules for morning, lunch, and evening
+2. THE 건강_플랫폼 SHALL provide medication schedule reminder functionality
+3. THE 건강_플랫폼 SHALL display drug interaction warnings
+4. THE 건강_플랫폼 SHALL track side effect records and medication history
+5. WHEN medications are taken, THE 건강_플랫폼 SHALL record timestamps and dosage confirmation
 
-### 요구사항 7
+### Requirement 7
 
-**사용자 스토리:** 건강 인사이트를 추구하는 사용자로서, AI 기반 건강 분석을 원합니다. 그래야 개인화된 건강 권장사항과 조기 경고를 받을 수 있습니다.
+**User Story:** 건강 인사이트를 추구하는 사용자로서, AI 기반 건강 분석을 원합니다. 그래야 개인화된 건강 권장사항과 조기 경고를 받을 수 있습니다.
 
-#### 수락 기준
+#### Acceptance Criteria
 
-1. 건강_플랫폼은 머신러닝 알고리즘을 사용하여 건강 데이터 패턴을 분석해야 합니다
-2. 건강_플랫폼은 개인화된 건강 관리 권장사항을 제공해야 합니다
-3. 건강_플랫폼은 잠재적 건강 문제에 대한 조기 경고 알림을 생성해야 합니다
-4. 건강_플랫폼은 과거 데이터를 기반으로 건강 트렌드를 예측해야 합니다
-5. 충분한 데이터가 사용 가능할 때, 건강_플랫폼은 질병 예측 인사이트를 제공해야 합니다
-#
-## 요구사항 8
+1. THE 건강_플랫폼 SHALL analyze health data patterns using machine learning algorithms
+2. THE 건강_플랫폼 SHALL provide personalized health management recommendations
+3. THE 건강_플랫폼 SHALL generate early warning alerts for potential health issues
+4. THE 건강_플랫폼 SHALL predict health trends based on historical data
+5. WHEN sufficient data is available, THE 건강_플랫폼 SHALL provide disease prediction insights
 
-**사용자 스토리:** 검사 결과를 관리하는 환자로서, 모든 의료 검사 결과를 체계적으로 저장하고 비교하고 싶습니다. 그래야 건강 상태 변화를 추적할 수 있습니다.
+### Requirement 8
 
-#### 수락 기준
+**User Story:** 검사 결과를 관리하는 환자로서, 모든 의료 검사 결과를 체계적으로 저장하고 비교하고 싶습니다. 그래야 건강 상태 변화를 추적할 수 있습니다.
 
-1. 건강_플랫폼은 혈액 검사 결과를 CBC, 간 기능, 신장 기능, 지질 검사별로 분류하여 저장해야 합니다
-2. 건강_플랫폼은 소변 검사 및 내시경 검사 결과를 기록해야 합니다
-3. 건강_플랫폼은 영상 검사 파일을 업로드하고 메모를 첨부할 수 있어야 합니다
-4. 건강_플랫폼은 정기 건강검진 결과를 저장해야 합니다
-5. 건강_플랫폼은 검사 결과의 시계열 비교 기능을 제공해야 합니다
+#### Acceptance Criteria
 
-### 요구사항 9
+1. THE 건강_플랫폼 SHALL store blood test results categorized by CBC, liver function, kidney function, and lipid tests
+2. THE 건강_플랫폼 SHALL record urine test and endoscopy examination results
+3. THE 건강_플랫폼 SHALL allow uploading of imaging test files and attaching notes
+4. THE 건강_플랫폼 SHALL store regular health checkup results
+5. THE 건강_플랫폼 SHALL provide time-series comparison functionality for test results
 
-**사용자 스토리:** 가족력을 관리하는 사용자로서, 가족의 의료 이력을 시각화하고 싶습니다. 그래야 유전적 위험 요소를 파악할 수 있습니다.
+### Requirement 9
 
-#### 수락 기준
+**User Story:** 가족력을 관리하는 사용자로서, 가족의 의료 이력을 시각화하고 싶습니다. 그래야 유전적 위험 요소를 파악할 수 있습니다.
 
-1. 건강_플랫폼은 가계도를 시각적으로 표시해야 합니다
-2. 건강_플랫폼은 가족 구성원별 주요 질환을 기록해야 합니다
-3. 건강_플랫폼은 유전 가능성이 있는 질환을 표시해야 합니다
-4. 건강_플랫폼은 가족력 정보를 검색하고 필터링할 수 있어야 합니다
-5. 건강_플랫폼은 가족력 기반 위험도 평가를 제공해야 합니다
+#### Acceptance Criteria
 
-### 요구사항 10
+1. THE 건강_플랫폼 SHALL display family tree visually
+2. THE 건강_플랫폼 SHALL record major diseases for each family member
+3. THE 건강_플랫폼 SHALL indicate diseases with genetic potential
+4. THE 건강_플랫폼 SHALL allow searching and filtering of family history information
+5. THE 건강_플랫폼 SHALL provide risk assessment based on family history
 
-**사용자 스토리:** 의료 문서를 관리하는 사용자로서, 모든 의료 관련 문서를 디지털화하고 체계적으로 관리하고 싶습니다. 그래야 필요할 때 빠르게 접근할 수 있습니다.
+### Requirement 10
 
-#### 수락 기준
+**User Story:** 의료 문서를 관리하는 사용자로서, 모든 의료 관련 문서를 디지털화하고 체계적으로 관리하고 싶습니다. 그래야 필요할 때 빠르게 접근할 수 있습니다.
 
-1. 건강_플랫폼은 의료 문서 스캔 업로드 기능을 제공해야 합니다
-2. 건강_플랫폼은 OCR을 통해 업로드된 문서에서 텍스트를 추출해야 합니다
-3. 건강_플랫폼은 문서를 카테고리별로 분류해야 합니다
-4. 건강_플랫폼은 문서 내용을 검색할 수 있어야 합니다
-5. 건강_플랫폼은 보험 청구 내역을 별도로 관리해야 합니다
+#### Acceptance Criteria
 
-### 요구사항 11
+1. THE 건강_플랫폼 SHALL provide medical document scan upload functionality
+2. THE 건강_플랫폼 SHALL extract text from uploaded documents through OCR
+3. THE 건강_플랫폼 SHALL categorize documents by type
+4. THE 건강_플랫폼 SHALL allow searching of document contents
+5. THE 건강_플랫폼 SHALL manage insurance claim records separately
 
-**사용자 스토리:** 병원 예약을 관리하는 사용자로서, 예정된 진료 일정을 체계적으로 관리하고 싶습니다. 그래야 진료 일정을 놓치지 않을 수 있습니다.
+### Requirement 11
 
-#### 수락 기준
+**User Story:** 병원 예약을 관리하는 사용자로서, 예정된 진료 일정을 체계적으로 관리하고 싶습니다. 그래야 진료 일정을 놓치지 않을 수 있습니다.
 
-1. 건강_플랫폼은 병원 예약 정보를 저장하고 관리해야 합니다
-2. 건강_플랫폼은 예약 알림 기능을 제공해야 합니다
-3. 건강_플랫폼은 예약 이력을 추적해야 합니다
-4. 건강_플랫폼은 진료과별 예약을 분류해야 합니다
-5. 건강_플랫폼은 예약 취소 및 변경 이력을 기록해야 합니다#
-## 요구사항 12
+#### Acceptance Criteria
 
-**사용자 스토리:** 유전체 정보를 활용하는 사용자로서, 유전자 검사 결과를 통합하고 분석하고 싶습니다. 그래야 유전적 특성에 기반한 건강 관리를 할 수 있습니다.
+1. THE 건강_플랫폼 SHALL store and manage hospital appointment information
+2. THE 건강_플랫폼 SHALL provide appointment reminder functionality
+3. THE 건강_플랫폼 SHALL track appointment history
+4. THE 건강_플랫폼 SHALL categorize appointments by medical department
+5. THE 건강_플랫폼 SHALL record appointment cancellation and modification history
 
-#### 수락 기준
+### Requirement 12
 
-1. 건강_플랫폼은 23andMe, Ancestry 등의 유전자 검사 결과를 업로드할 수 있어야 합니다
-2. 건강_플랫폼은 SNP 데이터를 저장하고 유전형 정보를 시각화해야 합니다
-3. 건강_플랫폼은 약물유전체학 정보를 제공해야 합니다
-4. 건강_플랫폼은 특정 약물에 대한 반응을 예측해야 합니다
-5. 건강_플랫폼은 유전 정보를 안전하게 암호화하여 저장해야 합니다
+**User Story:** 유전체 정보를 활용하는 사용자로서, 유전자 검사 결과를 통합하고 분석하고 싶습니다. 그래야 유전적 특성에 기반한 건강 관리를 할 수 있습니다.
 
-### 요구사항 13
+#### Acceptance Criteria
 
-**사용자 스토리:** 질병 위험도를 파악하고 싶은 사용자로서, 유전적 요인과 생활 습관을 종합한 위험도 분석을 받고 싶습니다. 그래야 예방적 건강 관리를 할 수 있습니다.
+1. THE 건강_플랫폼 SHALL allow uploading of genetic test results from 23andMe, Ancestry, and other platforms
+2. THE 건강_플랫폼 SHALL store SNP data and visualize genotype information
+3. THE 건강_플랫폼 SHALL provide pharmacogenomics information
+4. THE 건강_플랫폼 SHALL predict responses to specific medications
+5. THE 건강_플랫폼 SHALL securely encrypt and store genetic information
 
-#### 수락 기준
+### Requirement 13
 
-1. 건강_플랫폼은 심혈관 질환, 당뇨병, 암에 대한 유전적 위험도를 계산해야 합니다
-2. 건강_플랫폼은 알츠하이머 및 자가면역 질환 위험도를 평가해야 합니다
-3. 건강_플랫폼은 생활 습관, 가족력, 유전 정보를 통합하여 분석해야 합니다
-4. 건강_플랫폼은 위험도 점수를 백분위로 표시해야 합니다
-5. 건강_플랫폼은 위험도 변화 추이를 시각화해야 합니다
+**User Story:** 질병 위험도를 파악하고 싶은 사용자로서, 유전적 요인과 생활 습관을 종합한 위험도 분석을 받고 싶습니다. 그래야 예방적 건강 관리를 할 수 있습니다.
 
-### 요구사항 14
+#### Acceptance Criteria
 
-**사용자 스토리:** AI 기반 건강 예측을 원하는 사용자로서, 머신러닝을 통한 개인화된 건강 분석을 받고 싶습니다. 그래야 미래의 건강 문제를 예방할 수 있습니다.
+1. THE 건강_플랫폼 SHALL calculate genetic risk for cardiovascular disease, diabetes, and cancer
+2. THE 건강_플랫폼 SHALL assess risk for Alzheimer's and autoimmune diseases
+3. THE 건강_플랫폼 SHALL integrate lifestyle habits, family history, and genetic information for analysis
+4. THE 건강_플랫폼 SHALL display risk scores in percentiles
+5. THE 건강_플랫폼 SHALL visualize risk change trends over time
 
-#### 수락 기준
+### Requirement 14
 
-1. 건강_플랫폼은 머신러닝 모델을 통해 질병 발생 확률을 예측해야 합니다
-2. 건강_플랫폼은 개인화된 건강 위험 요인을 식별해야 합니다
-3. 건강_플랫폼은 예방 가능한 질병에 대한 조기 경고를 제공해야 합니다
-4. 건강_플랫폼은 건강 악화 패턴을 감지해야 합니다
-5. 건강_플랫폼은 예측 정확도를 지속적으로 개선해야 합니다
+**User Story:** AI 기반 건강 예측을 원하는 사용자로서, 머신러닝을 통한 개인화된 건강 분석을 받고 싶습니다. 그래야 미래의 건강 문제를 예방할 수 있습니다.
 
-### 요구사항 15
+#### Acceptance Criteria
 
-**사용자 스토리:** 맞춤형 건강 관리를 원하는 사용자로서, 개인의 유전적 특성에 기반한 건강 권장사항을 받고 싶습니다. 그래야 최적화된 건강 관리를 할 수 있습니다.
+1. THE 건강_플랫폼 SHALL predict disease occurrence probability through machine learning models
+2. THE 건강_플랫폼 SHALL identify personalized health risk factors
+3. THE 건강_플랫폼 SHALL provide early warnings for preventable diseases
+4. THE 건강_플랫폼 SHALL detect health deterioration patterns
+5. THE 건강_플랫폼 SHALL continuously improve prediction accuracy
 
-#### 수락 기준
+### Requirement 15
 
-1. 건강_플랫폼은 유전 정보 기반 영양소 추천을 제공해야 합니다
-2. 건강_플랫폼은 개인에게 최적화된 운동 유형을 제안해야 합니다
-3. 건강_플랫폼은 정기 검진 항목 및 주기를 추천해야 합니다
-4. 건강_플랫폼은 라이프스타일 개선 제안을 제공해야 합니다
-5. 건강_플랫폼은 권장사항의 효과를 추적하고 평가해야 합니다
+**User Story:** 맞춤형 건강 관리를 원하는 사용자로서, 개인의 유전적 특성에 기반한 건강 권장사항을 받고 싶습니다. 그래야 최적화된 건강 관리를 할 수 있습니다.
 
-### 요구사항 16
+#### Acceptance Criteria
 
-**사용자 스토리:** 의학 연구에 기여하고 싶은 사용자로서, 익명화된 데이터를 통해 연구에 참여하고 싶습니다. 그래야 의학 발전에 기여하면서 개인적 혜택도 받을 수 있습니다.
+1. THE 건강_플랫폼 SHALL provide nutrient recommendations based on genetic information
+2. THE 건강_플랫폼 SHALL suggest exercise types optimized for individuals
+3. THE 건강_플랫폼 SHALL recommend regular checkup items and intervals
+4. THE 건강_플랫폼 SHALL provide lifestyle improvement suggestions
+5. THE 건강_플랫폼 SHALL track and evaluate the effectiveness of recommendations
 
-#### 수락 기준
+### Requirement 16
 
-1. 건강_플랫폼은 사용자 데이터를 완전히 익명화해야 합니다
-2. 건강_플랫폼은 의학 연구 참여 옵션을 제공해야 합니다
-3. 건강_플랫폼은 적합한 임상시험을 매칭해야 합니다
-4. 건강_플랫폼은 데이터 기여에 대한 인센티브를 제공해야 합니다
-5. 건강_플랫폼은 연구 참여 현황과 결과를 사용자에게 피드백해야 합니다
+**User Story:** 의학 연구에 기여하고 싶은 사용자로서, 익명화된 데이터를 통해 연구에 참여하고 싶습니다. 그래야 의학 발전에 기여하면서 개인적 혜택도 받을 수 있습니다.
 
-### 요구사항 17
+#### Acceptance Criteria
 
-**사용자 스토리:** 고급 건강 분석을 원하는 사용자로서, AI 기반 자동 분석과 실시간 모니터링을 받고 싶습니다. 그래야 더욱 정확하고 편리한 건강 관리를 할 수 있습니다.
+1. THE 건강_플랫폼 SHALL completely anonymize user data
+2. THE 건강_플랫폼 SHALL provide medical research participation options
+3. THE 건강_플랫폼 SHALL match suitable clinical trials
+4. THE 건강_플랫폼 SHALL provide incentives for data contribution
+5. THE 건강_플랫폼 SHALL provide feedback to users on research participation status and results
 
-#### 수락 기준
+### Requirement 17
 
-1. 건강_플랫폼은 자연어 처리를 통해 의료 문서를 자동 분석해야 합니다
-2. 건강_플랫폼은 챗봇을 통한 건강 상담 기능을 제공해야 합니다
-3. 건강_플랫폼은 웨어러블 기기와 연동되어야 합니다
-4. 건강_플랫폼은 원격 모니터링 기능을 제공해야 합니다
-5. 건강_플랫폼은 텔레헬스 서비스와 통합되어야 합니다
+**User Story:** 고급 건강 분석을 원하는 사용자로서, AI 기반 자동 분석과 실시간 모니터링을 받고 싶습니다. 그래야 더욱 정확하고 편리한 건강 관리를 할 수 있습니다.
+
+#### Acceptance Criteria
+
+1. THE 건강_플랫폼 SHALL automatically analyze medical documents through natural language processing
+2. THE 건강_플랫폼 SHALL provide health consultation functionality through chatbot
+3. THE 건강_플랫폼 SHALL integrate with wearable devices
+4. THE 건강_플랫폼 SHALL provide remote monitoring functionality
+5. THE 건강_플랫폼 SHALL integrate with telehealth services

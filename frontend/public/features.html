@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>기능 - K-hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-50: #eff6ff;
+            --primary-100: #dbeafe;
+            --primary-200: #bfdbfe;
+            --primary-300: #93c5fd;
+            --primary-400: #60a5fa;
+            --primary-500: #3b82f6;
+            --primary-600: #2563eb;
+            --primary-700: #1d4ed8;
+            --primary-800: #1e40af;
+            --primary-900: #1e3a8a;
+            
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            
+            --gradient-primary: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: var(--gray-900);
+            background: var(--gray-50);
+        }
+        
+        /* 헤더 */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--gray-200);
+            z-index: 1000;
+        }
+        
+        .header-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 80px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--gray-900);
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+        }
+        
+        .logo-text {
+            font-size: 24px;
+            font-weight: 800;
+        }
+        
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+        
+        .nav-link {
+            color: var(--gray-600);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary-600);
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--gray-600);
+            border: 1px solid var(--gray-300);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--gray-100);
+        }
+        
+        /* 메인 콘텐츠 */
+        .main-content {
+            padding-top: 80px;
+        }
+        
+        /* 히어로 섹션 */
+        .hero {
+            background: white;
+            padding: 120px 0 80px;
+            text-align: center;
+        }
+        
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--gray-900);
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+        }
+        
+        .hero-description {
+            font-size: 1.25rem;
+            color: var(--gray-600);
+            max-width: 600px;
+            margin: 0 auto 3rem;
+        }
+        
+        /* 기능 섹션 */
+        .features-section {
+            padding: 80px 0;
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        
+        .section-badge {
+            display: inline-block;
+            background: var(--primary-50);
+            color: var(--primary-700);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--gray-900);
+            margin-bottom: 1rem;
+        }
+        
+        .section-description {
+            font-size: 1.1rem;
+            color: var(--gray-600);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            border: 1px solid var(--gray-200);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .feature-card:nth-child(3n+1) .feature-icon {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .feature-card:nth-child(3n+2) .feature-icon {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .feature-card:nth-child(3n+3) .feature-icon {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 1rem;
+        }
+        
+        .feature-description {
+            color: var(--gray-600);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        
+        .feature-list {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+        
+        .feature-list li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--gray-700);
+        }
+        
+        .feature-check {
+            width: 20px;
+            height: 20px;
+            background: #10b981;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        
+        /* CTA 섹션 */
+        .cta-section {
+            background: var(--gray-900);
+            color: white;
+            padding: 120px 0;
+            text-align: center;
+        }
+        
+        .cta-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+        }
+        
+        .cta-description {
+            font-size: 1.25rem;
+            margin-bottom: 2.5rem;
+            color: var(--gray-300);
+        }
+        
+        .cta-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        .btn-white {
+            background: white;
+            color: var(--gray-900);
+        }
+        
+        .btn-white:hover {
+            background: var(--gray-100);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: white;
+            border: 1px solid var(--gray-600);
+        }
+        
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: white;
+        }
+        
+        /* 푸터 */
+        .footer {
+            background: var(--gray-900);
+            color: var(--gray-300);
+            padding: 80px 0 32px;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+        
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1rem;
+        }
+        
+        .footer-brand .logo-icon {
+            width: 32px;
+            height: 32px;
+            font-size: 16px;
+        }
+        
+        .footer-brand .logo-text {
+            font-size: 20px;
+            color: white;
+        }
+        
+        .footer-description {
+            color: var(--gray-400);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        
+        .footer-section h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: white;
+        }
+        
+        .footer-links {
+            list-style: none;
+        }
+        
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+        
+        .footer-links a {
+            color: var(--gray-400);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s ease;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+        }
+        
+        .footer-bottom {
+            border-top: 1px solid var(--gray-700);
+            padding-top: 2rem;
+            text-align: center;
+            color: var(--gray-400);
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .cta-title {
+                font-size: 2rem;
+            }
+            
+            .nav {
+                display: none;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .cta-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 헤더 -->
+    <header class="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">K</div>
+                <span class="logo-text">K-hub</span>
+            </a>
+            
+            <nav class="nav">
+                <a href="index.html#solutions" class="nav-link">솔루션</a>
+                <a href="features.html" class="nav-link active">기능</a>
+                <a href="about.html" class="nav-link">회사소개</a>
+                <a href="contact.html" class="nav-link">문의하기</a>
+            </nav>
+            
+            <div class="header-actions">
+                <a href="login.html" class="btn btn-secondary">로그인</a>
+                <a href="signup.html" class="btn btn-primary">
+                    <i class="fas fa-rocket"></i>
+                    시작하기
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- 히어로 섹션 -->
+        <section class="hero">
+            <div class="container">
+                <h1 class="hero-title">
+                    포괄적인 건강 관리를 위한<br>
+                    모든 기능
+                </h1>
+                <p class="hero-description">
+                    K-hub는 개인의 건강 데이터를 체계적으로 관리하고 AI 기반 분석을 통해 
+                    맞춤형 건강 솔루션을 제공하는 통합 플랫폼입니다.
+                </p>
+            </div>
+        </section>
+
+        <!-- 핵심 기능 섹션 -->
+        <section class="features-section">
+            <div class="container">
+                <div class="section-header">
+                    <div class="section-badge">핵심 기능</div>
+                    <h2 class="section-title">건강 관리의 모든 것을 하나로</h2>
+                    <p class="section-description">
+                        개인 건강 데이터 수집부터 AI 분석, 맞춤형 권장사항까지 
+                        건강 관리에 필요한 모든 기능을 제공합니다.
+                    </p>
+                </div>
+                
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-heartbeat"></i>
+                        </div>
+                        <h3 class="feature-title">실시간 바이탈 모니터링</h3>
+                        <p class="feature-description">
+                            혈압, 심박수, 체온, 혈당 등 주요 바이탈 사인을 실시간으로 
+                            모니터링하고 트렌드를 분석합니다.
+                        </p>
+                        <ul class="feature-list">
+                            <li><span class="feature-check">✓</span>실시간 데이터 수집</li>
+                            <li><span class="feature-check">✓</span>트렌드 분석 및 시각화</li>
+                            <li><span class="feature-check">✓</span>이상 징후 자동 감지</li>
+                            <li><span class="feature-check">✓</span>웨어러블 기기 연동</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h3 class="feature-title">AI 건강 분석</h3>
+                        <p class="feature-description">
+                            머신러닝 알고리즘을 활용하여 개인의 건강 패턴을 분석하고 
+                            질병 위험도를 예측합니다.
+                        </p>
+                        <ul class="feature-list">
+                            <li><span class="feature-check">✓</span>개인화된 건강 인사이트</li>
+                            <li><span class="feature-check">✓</span>질병 위험도 예측</li>
+                            <li><span class="feature-check">✓</span>건강 패턴 분석</li>
+                            <li><span class="feature-check">✓</span>조기 경고 시스템</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-dna"></i>
+                        </div>
+                        <h3 class="feature-title">유전체 분석</h3>
+                        <p class="feature-description">
+                            개인의 유전 정보를 분석하여 질병 감수성과 약물 반응성을 
+                            평가하고 맞춤형 건강 관리를 제공합니다.
+                        </p>
+                        <ul class="feature-list">
+                            <li><span class="feature-check">✓</span>유전적 질병 위험도 평가</li>
+                            <li><span class="feature-check">✓</span>약물유전체학 분석</li>
+                            <li><span class="feature-check">✓</span>가족력 기반 위험 평가</li>
+                            <li><span class="feature-check">✓</span>개인화된 예방 전략</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-file-medical"></i>
+                        </div>
+                        <h3 class="feature-title">통합 의료 기록 관리</h3>
+                        <p class="feature-description">
+                            모든 진료 기록, 검사 결과, 처방전을 체계적으로 관리하고 
+                            의료진과 안전하게 공유할 수 있습니다.
+                        </p>
+                        <ul class="feature-list">
+                            <li><span class="feature-check">✓</span>디지털 의료 기록 보관</li>
+                            <li><span class="feature-check">✓</span>OCR 기반 문서 자동 인식</li>
+                            <li><span class="feature-check">✓</span>검사 결과 트렌드 분석</li>
+                            <li><span class="feature-check">✓</span>의료진과의 안전한 공유</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-pills"></i>
+                        </div>
+                        <h3 class="feature-title">스마트 복약 관리</h3>
+                        <p class="feature-description">
+                            복약 일정을 관리하고 약물 상호작용을 확인하여 
+                            안전하고 효과적인 복약을 지원합니다.
+                        </p>
+                        <ul class="feature-list">
+                            <li><span class="feature-check">✓</span>복약 알림 및 스케줄링</li>
+                            <li><span class="feature-check">✓</span>약물 상호작용 경고</li>
+                            <li><span class="feature-check">✓</span>부작용 모니터링</li>
+                            <li><span class="feature-check">✓</span>복약 순응도 추적</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3 class="feature-title">의료급 보안</h3>
+                        <p class="feature-description">
+                            HIPAA 준수 및 최고 수준의 암호화 기술로 
+                            개인 건강 정보를 안전하게 보호합니다.
+                        </p>
+                        <ul class="feature-list">
+                            <li><span class="feature-check">✓</span>HIPAA 준수 보안 정책</li>
+                            <li><span class="feature-check">✓</span>종단간 암호화</li>
+                            <li><span class="feature-check">✓</span>접근 권한 관리</li>
+                            <li><span class="feature-check">✓</span>감사 로그 및 모니터링</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 고급 기능 섹션 -->
+        <section class="features-section" style="background: white;">
+            <div class="container">
+                <div class="section-header">
+                    <div class="section-badge">고급 기능</div>
+                    <h2 class="section-title">차세대 건강 관리 기술</h2>
+                    <p class="section-description">
+                        최신 기술을 활용한 고급 기능으로 더욱 정확하고 
+                        개인화된 건강 관리 서비스를 제공합니다.
+                    </p>
+                </div>
+                
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h3 class="feature-title">AI 건강 어시스턴트</h3>
+                        <p class="feature-description">
+                            자연어 처리 기술을 활용한 AI 챗봇이 24/7 건강 상담과 
+                            개인화된 건강 관리 조언을 제공합니다.
+                        </p>
+                        <ul class="feature-list">
+                            <li><span class="feature-check">✓</span>24/7 AI 건강 상담</li>
+                            <li><span class="feature-check">✓</span>증상 기반 초기 진단</li>
+                            <li><span class="feature-check">✓</span>개인화된 건강 조언</li>
+                            <li><span class="feature-check">✓</span>응급상황 감지 및 대응</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-satellite-dish"></i>
+                        </div>
+                        <h3 class="feature-title">원격 모니터링</h3>
+                        <p class="feature-description">
+                            IoT 기기와 웨어러블을 통한 원격 모니터링으로 
+                            의료진이 실시간으로 환자 상태를 확인할 수 있습니다.
+                        </p>
+                        <ul class="feature-list">
+                            <li><span class="feature-check">✓</span>실시간 원격 모니터링</li>
+                            <li><span class="feature-check">✓</span>의료진 대시보드</li>
+                            <li><span class="feature-check">✓</span>자동 알림 시스템</li>
+                            <li><span class="feature-check">✓</span>텔레헬스 연동</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-microscope"></i>
+                        </div>
+                        <h3 class="feature-title">연구 참여 플랫폼</h3>
+                        <p class="feature-description">
+                            익명화된 데이터를 통해 의학 연구에 기여하고 
+                            최신 치료법과 임상시험 정보를 제공받을 수 있습니다.
+                        </p>
+                        <ul class="feature-list">
+                            <li><span class="feature-check">✓</span>익명화된 데이터 기여</li>
+                            <li><span class="feature-check">✓</span>임상시험 매칭</li>
+                            <li><span class="feature-check">✓</span>연구 결과 피드백</li>
+                            <li><span class="feature-check">✓</span>인센티브 프로그램</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA 섹션 -->
+        <section class="cta-section">
+            <div class="container">
+                <h2 class="cta-title">
+                    지금 시작하세요
+                </h2>
+                <p class="cta-description">
+                    K-hub의 모든 기능을 무료로 체험해보세요. 
+                    더 건강한 미래를 위한 첫 걸음을 내딛어보세요.
+                </p>
+                <div class="cta-actions">
+                    <a href="signup.html" class="btn btn-white">
+                        <i class="fas fa-rocket"></i>
+                        무료로 시작하기
+                    </a>
+                    <a href="contact.html" class="btn btn-outline">
+                        상담 신청하기
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 푸터 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <div class="footer-brand">
+                        <div class="logo-icon">K</div>
+                        <span class="logo-text">K-hub</span>
+                    </div>
+                    <p class="footer-description">
+                        AI 기반 개인 맞춤형 건강 관리의 새로운 표준
+                    </p>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>제품</h4>
+                    <ul class="footer-links">
+                        <li><a href="features.html">기능</a></li>
+                        <li><a href="#">요금제</a></li>
+                        <li><a href="#">보안</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>지원</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">도움말 센터</a></li>
+                        <li><a href="contact.html">문의하기</a></li>
+                        <li><a href="#">API 문서</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>회사</h4>
+                    <ul class="footer-links">
+                        <li><a href="about.html">회사 소개</a></li>
+                        <li><a href="#">개인정보처리방침</a></li>
+                        <li><a href="#">이용약관</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2024 K-hub. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

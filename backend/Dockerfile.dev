@@ -1,23 +1,30 @@
+# 백엔드 개발용 Dockerfile
 FROM node:18-alpine
 
+# 작업 디렉토리 설정
 WORKDIR /app
 
-# Install dependencies
+# 시스템 의존성 설치
+RUN apk add --no-cache \
+    postgresql-client \
+    python3 \
+    make \
+    g++
+
+# 패키지 파일 복사
 COPY package*.json ./
-COPY prisma ./prisma/
-RUN npm ci
 
-# Generate Prisma client
-RUN npx prisma generate
+# 의존성 설치 (개발 의존성 포함)
+RUN npm install
 
-# Copy source code
+# 소스 코드 복사
 COPY . .
 
-# Create uploads directory
-RUN mkdir -p uploads
+# Prisma 클라이언트 생성
+RUN npx prisma generate
 
-# Expose port
-EXPOSE 5000
+# 포트 노출
+EXPOSE 3000
 
-# Start development server with hot reload
+# 개발 서버 시작
 CMD ["npm", "run", "dev"]

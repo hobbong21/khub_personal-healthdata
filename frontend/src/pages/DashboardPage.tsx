@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageToggle from '../components/LanguageToggle';
+import { Component } from 'lucide-react';
 
 interface User {
   email: string;
@@ -533,6 +534,7 @@ const HealthDataTab: React.FC<{
   healthData: any;
   onUpdate: (field: string, value: any) => void;
 }> = ({ healthData, onUpdate }) => {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     systolic: healthData.bloodPressure.systolic,
     diastolic: healthData.bloodPressure.diastolic,
@@ -1316,3 +1318,136 @@ const AppointmentsTab: React.FC = () => {
     </div>
   );
 };
+
+// Reports Tab Component
+const ReportsTab: React.FC = () => {
+  const { t } = useLanguage();
+  
+  return (
+    <div>
+      <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#111827', marginBottom: '32px' }}>
+        {t('dashboard.menu.reports')}
+      </h2>
+      
+      <div style={{
+        background: '#ffffff',
+        padding: '24px',
+        borderRadius: '12px',
+        border: '1px solid #e5e7eb',
+        textAlign: 'center'
+      }}>
+        <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
+        <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '8px' }}>
+          건강 리포트
+        </h3>
+        <p style={{ color: '#6b7280', marginBottom: '24px' }}>
+          상세한 건강 분석 리포트가 곧 제공될 예정입니다.
+        </p>
+        <button style={{
+          background: '#2563eb',
+          color: 'white',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          border: 'none',
+          fontSize: '14px',
+          fontWeight: '600',
+          cursor: 'pointer'
+        }}>
+          리포트 생성하기
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Settings Tab Component
+const SettingsTab: React.FC<{ user: User }> = ({ user }) => {
+  const { t } = useLanguage();
+  
+  return (
+    <div>
+      <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#111827', marginBottom: '32px' }}>
+        {t('dashboard.menu.settings')}
+      </h2>
+      
+      <div style={{
+        background: '#ffffff',
+        padding: '24px',
+        borderRadius: '12px',
+        border: '1px solid #e5e7eb',
+        marginBottom: '24px'
+      }}>
+        <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '20px' }}>
+          프로필 정보
+        </h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+          <div>
+            <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px', display: 'block' }}>
+              이름
+            </label>
+            <input
+              type="text"
+              value={user.name}
+              readOnly
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '14px',
+                backgroundColor: '#f9fafb',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px', display: 'block' }}>
+              이메일
+            </label>
+            <input
+              type="email"
+              value={user.email}
+              readOnly
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '14px',
+                backgroundColor: '#f9fafb',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
+        </div>
+      </div>
+      
+      <div style={{
+        background: '#ffffff',
+        padding: '24px',
+        borderRadius: '12px',
+        border: '1px solid #e5e7eb'
+      }}>
+        <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '20px' }}>
+          알림 설정
+        </h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+            <input type="checkbox" defaultChecked style={{ width: '16px', height: '16px' }} />
+            <span style={{ fontSize: '14px', color: '#374151' }}>복약 알림 받기</span>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+            <input type="checkbox" defaultChecked style={{ width: '16px', height: '16px' }} />
+            <span style={{ fontSize: '14px', color: '#374151' }}>진료 예약 알림 받기</span>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+            <input type="checkbox" style={{ width: '16px', height: '16px' }} />
+            <span style={{ fontSize: '14px', color: '#374151' }}>건강 리포트 알림 받기</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default DashboardPage;

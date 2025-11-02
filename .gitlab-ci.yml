@@ -1,0 +1,446 @@
+# GitLab CI/CD Pipeline for K-hub
+
+stages:
+  - validate
+  - test
+  - build
+  - security
+  - deploy-staging
+  - deploy-production
+  - monitor
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+  NODE_VERSION: "18"
+  POSTGRES_VERSION: "15"
+  REDIS_VERSION: "7"
+  
+  # 이미지 레지스트리
+  REGISTRY: $CI_REGISTRY
+  BACKEND_IMAGE: $CI_REGISTRY_IMAGE/backend
+  FRONTEND_IMAGE: $CI_REGISTRY_IMAGE/frontend
+
+# 공통 설정
+.node_template: &node_template
+  image: node:18-alpine
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - node_modules/
+      - .npm/
+  before_script:
+    - npm config set cache .npm
+    - npm ci
+
+.docker_template: &docker_template
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+# 코드 품질 검사
+lint:backend:
+  <<: *node_template
+  stage: validate
+  script:
+    - cd backend
+    - npm ci
+    - npm run lint
+    - npm run format:check
+  only:
+    - merge_requests
+    - main
+    - develop
+
+lint:frontend:
+  <<: *node_template
+  stage: validate
+  script:
+    - cd frontend
+    - npm ci
+    - npm run lint
+    - npm run format:check
+  only:
+    - merge_requests
+    - main
+    - develop
+
+# 보안 검사
+security:audit:
+  <<: *node_template
+  stage: validate
+  script:
+    - cd backend && npm audit --audit-level=high
+    - cd ../frontend && npm audit --audit-level=high
+  allow_failure: true
+  only:
+    - merge_requests
+    - main
+    - develop
+
+security:secrets:
+  image: trufflesecurity/trufflehog:latest
+  stage: validate
+  script:
+    - trufflehog git file://. --only-verified
+  allow_failure: true
+  only:
+    - merge_requests
+    - main
+    - develop
+
+# 백엔드 테스트
+test:backend:unit:
+  <<: *node_template
+  stage: test
+  services:
+    - name: postgres:15
+      alias: postgres
+      variables:
+        POSTGRES_DB: khub_test
+        POSTGRES_USER: test_user
+        POSTGRES_PASSWORD: test_password
+    - name: redis:7
+      alias: redis
+  variables:
+    DATABASE_URL: postgresql://test_user:test_password@postgres:5432/khub_test
+    REDIS_URL: redis://redis:6379
+    JWT_SECRET: test-jwt-secret
+    NODE_ENV: test
+  script:
+    - cd backend
+    - npm ci
+    - npx prisma generate
+    - npx prisma migrate deploy
+    - npm run test
+    - npm run test:coverage
+  coverage: '/Lines\s*:\s*(\d+\.\d+)%/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: backend/coverage/cobertura-coverage.xml
+    paths:
+      - backend/coverage/
+    expire_in: 1 week
+  only:
+    - merge_requests
+    - main
+    - develop
+
+test:backend:integration:
+  <<: *node_template
+  stage: test
+  services:
+    - name: postgres:15
+      alias: postgres
+      variables:
+        POSTGRES_DB: khub_test
+        POSTGRES_USER: test_user
+        POSTGRES_PASSWORD: test_password
+    - name: redis:7
+      alias: redis
+  variables:
+    DATABASE_URL: postgresql://test_user:test_password@postgres:5432/khub_test
+    REDIS_URL: redis://redis:6379
+    JWT_SECRET: test-jwt-secret
+    NODE_ENV: test
+  script:
+    - cd backend
+    - npm ci
+    - npx prisma generate
+    - npx prisma migrate deploy
+    - npm run test:integration
+  artifacts:
+    reports:
+      junit: backend/test-results.xml
+    paths:
+      - backend/test-results/
+    expire_in: 1 week
+  only:
+    - merge_requests
+    - main
+    - develop
+
+# 프론트엔드 테스트
+test:frontend:unit:
+  <<: *node_template
+  stage: test
+  script:
+    - cd frontend
+    - npm ci
+    - npm run test
+    - npm run test:coverage
+  coverage: '/Lines\s*:\s*(\d+\.\d+)%/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: frontend/coverage/cobertura-coverage.xml
+    paths:
+      - frontend/coverage/
+    expire_in: 1 week
+  only:
+    - merge_requests
+    - main
+    - develop
+
+test:frontend:e2e:
+  image: mcr.microsoft.com/playwright:v1.40.0-focal
+  stage: test
+  services:
+    - name: postgres:15
+      alias: postgres
+      variables:
+        POSTGRES_DB: khub_test
+        POSTGRES_USER: test_user
+        POSTGRES_PASSWORD: test_password
+    - name: redis:7
+      alias: redis
+  variables:
+    DATABASE_URL: postgresql://test_user:test_password@postgres:5432/khub_test
+    REDIS_URL: redis://redis:6379
+    JWT_SECRET: test-jwt-secret
+  before_script:
+    - cp .env.example .env
+    - sed -i 's/your-secure-postgres-password/test_password/g' .env
+    - docker-compose -f docker-compose.dev.yml up -d
+    - sleep 30
+  script:
+    - cd e2e-tests
+    - npm ci
+    - npx playwright test
+  after_script:
+    - docker-compose -f docker-compose.dev.yml down
+  artifacts:
+    when: always
+    paths:
+      - e2e-tests/test-results/
+      - e2e-tests/playwright-report/
+    expire_in: 1 week
+  only:
+    - merge_requests
+    - main
+    - develop
+
+# 빌드
+build:backend:
+  <<: *docker_template
+  stage: build
+  script:
+    - cd backend
+    - docker build -t $BACKEND_IMAGE:$CI_COMMIT_SHA .
+    - docker push $BACKEND_IMAGE:$CI_COMMIT_SHA
+    - |
+      if [ "$CI_COMMIT_REF_NAME" = "main" ]; then
+        docker tag $BACKEND_IMAGE:$CI_COMMIT_SHA $BACKEND_IMAGE:latest
+        docker push $BACKEND_IMAGE:latest
+      fi
+  only:
+    - main
+    - develop
+    - tags
+
+build:frontend:
+  <<: *docker_template
+  stage: build
+  script:
+    - cd frontend
+    - docker build -t $FRONTEND_IMAGE:$CI_COMMIT_SHA .
+    - docker push $FRONTEND_IMAGE:$CI_COMMIT_SHA
+    - |
+      if [ "$CI_COMMIT_REF_NAME" = "main" ]; then
+        docker tag $FRONTEND_IMAGE:$CI_COMMIT_SHA $FRONTEND_IMAGE:latest
+        docker push $FRONTEND_IMAGE:latest
+      fi
+  only:
+    - main
+    - develop
+    - tags
+
+# 보안 스캔
+security:container:backend:
+  image: aquasec/trivy:latest
+  stage: security
+  script:
+    - trivy image --exit-code 0 --format template --template "@contrib/sarif.tpl" -o backend-trivy-report.sarif $BACKEND_IMAGE:$CI_COMMIT_SHA
+    - trivy image --exit-code 1 --severity HIGH,CRITICAL $BACKEND_IMAGE:$CI_COMMIT_SHA
+  artifacts:
+    reports:
+      sast: backend-trivy-report.sarif
+    expire_in: 1 week
+  dependencies:
+    - build:backend
+  only:
+    - main
+    - develop
+    - tags
+
+security:container:frontend:
+  image: aquasec/trivy:latest
+  stage: security
+  script:
+    - trivy image --exit-code 0 --format template --template "@contrib/sarif.tpl" -o frontend-trivy-report.sarif $FRONTEND_IMAGE:$CI_COMMIT_SHA
+    - trivy image --exit-code 1 --severity HIGH,CRITICAL $FRONTEND_IMAGE:$CI_COMMIT_SHA
+  artifacts:
+    reports:
+      sast: frontend-trivy-report.sarif
+    expire_in: 1 week
+  dependencies:
+    - build:frontend
+  only:
+    - main
+    - develop
+    - tags
+
+# 스테이징 배포
+deploy:staging:
+  image: bitnami/kubectl:latest
+  stage: deploy-staging
+  environment:
+    name: staging
+    url: https://staging.khub.example.com
+  before_script:
+    - kubectl config use-context $KUBE_CONTEXT_STAGING
+  script:
+    - |
+      helm upgrade --install khub-staging ./helm/khub \
+        --namespace staging \
+        --create-namespace \
+        --set image.backend.repository=$BACKEND_IMAGE \
+        --set image.backend.tag=$CI_COMMIT_SHA \
+        --set image.frontend.repository=$FRONTEND_IMAGE \
+        --set image.frontend.tag=$CI_COMMIT_SHA \
+        --set environment=staging \
+        --values ./helm/khub/values-staging.yaml
+    - kubectl rollout status deployment/khub-backend -n staging --timeout=300s
+    - kubectl rollout status deployment/khub-frontend -n staging --timeout=300s
+    - curl -f https://staging.khub.example.com/api/health
+  dependencies:
+    - build:backend
+    - build:frontend
+    - security:container:backend
+    - security:container:frontend
+  only:
+    - main
+    - develop
+
+# 성능 테스트
+test:performance:
+  image: grafana/k6:latest
+  stage: deploy-staging
+  script:
+    - k6 run --out json=performance-results.json performance-tests/load-test.js
+  environment:
+    name: staging
+  variables:
+    BASE_URL: https://staging.khub.example.com
+  artifacts:
+    reports:
+      performance: performance-results.json
+    expire_in: 1 week
+  dependencies:
+    - deploy:staging
+  only:
+    - main
+
+# 프로덕션 배포
+deploy:production:
+  image: bitnami/kubectl:latest
+  stage: deploy-production
+  environment:
+    name: production
+    url: https://khub.example.com
+  before_script:
+    - kubectl config use-context $KUBE_CONTEXT_PRODUCTION
+  script:
+    # 데이터베이스 백업
+    - kubectl create job --from=cronjob/postgres-backup backup-$(date +%Y%m%d-%H%M%S) -n production
+    
+    # Blue-Green 배포
+    - |
+      helm upgrade --install khub-production ./helm/khub \
+        --namespace production \
+        --create-namespace \
+        --set image.backend.repository=$BACKEND_IMAGE \
+        --set image.backend.tag=$CI_COMMIT_SHA \
+        --set image.frontend.repository=$FRONTEND_IMAGE \
+        --set image.frontend.tag=$CI_COMMIT_SHA \
+        --set environment=production \
+        --set deployment.strategy=blue-green \
+        --values ./helm/khub/values-production.yaml
+        
+    # 배포 상태 확인
+    - kubectl rollout status deployment/khub-backend -n production --timeout=600s
+    - kubectl rollout status deployment/khub-frontend -n production --timeout=600s
+    
+    # Health check
+    - |
+      for i in {1..10}; do
+        if curl -f https://khub.example.com/api/health; then
+          echo "Health check passed"
+          break
+        fi
+        echo "Health check failed, retrying in 30s..."
+        sleep 30
+      done
+  dependencies:
+    - deploy:staging
+    - test:performance
+  when: manual
+  only:
+    - main
+    - tags
+
+# 배포 후 모니터링
+monitor:production:
+  image: curlimages/curl:latest
+  stage: monitor
+  script:
+    # 5분간 모니터링
+    - sleep 300
+    
+    # 메트릭 확인
+    - |
+      ERROR_RATE=$(curl -s "$PROMETHEUS_URL/api/v1/query?query=rate(http_requests_total{status=~\"5..\"}[5m])" | jq -r '.data.result[0].value[1] // "0"')
+      if (( $(echo "$ERROR_RATE > 0.01" | bc -l) )); then
+        echo "High error rate detected: $ERROR_RATE"
+        exit 1
+      fi
+  dependencies:
+    - deploy:production
+  when: always
+  only:
+    - main
+    - tags
+
+# 알림
+notify:success:
+  image: curlimages/curl:latest
+  stage: monitor
+  script:
+    - |
+      curl -X POST -H 'Content-type: application/json' \
+        --data "{\"text\":\"✅ K-hub deployment successful! Environment: $CI_ENVIRONMENT_NAME, Commit: $CI_COMMIT_SHORT_SHA\"}" \
+        $SLACK_WEBHOOK_URL
+  when: on_success
+  dependencies:
+    - deploy:production
+  only:
+    - main
+    - tags
+
+notify:failure:
+  image: curlimages/curl:latest
+  stage: monitor
+  script:
+    - |
+      curl -X POST -H 'Content-type: application/json' \
+        --data "{\"text\":\"❌ K-hub deployment failed! Environment: $CI_ENVIRONMENT_NAME, Commit: $CI_COMMIT_SHORT_SHA, Pipeline: $CI_PIPELINE_URL\"}" \
+        $SLACK_WEBHOOK_URL
+  when: on_failure
+  only:
+    - main
+    - tags

@@ -151,7 +151,7 @@ export class TestResultModel {
       if (testResults.length < 2) continue;
 
       const dataPoints = testResults.map(result => {
-        const testItems = result.testItems as TestItem[];
+        const testItems = result.testItems as unknown as TestItem[];
         const mainItem = testItems[0]; // 주요 검사 항목
         
         return {
@@ -174,7 +174,7 @@ export class TestResultModel {
       trends.push({
         testName,
         testCategory: testResults[0].testCategory as TestCategory,
-        unit: (testResults[0].testItems as TestItem[])[0]?.unit,
+        unit: (testResults[0].testItems as unknown as TestItem[])[0]?.unit,
         dataPoints,
         trend,
         changePercentage: lastYearComparison?.changePercentage,
@@ -203,8 +203,8 @@ export class TestResultModel {
     const current = results[0];
     const previous = results.length > 1 ? results[1] : null;
 
-    const currentItem = (current.testItems as TestItem[])[0];
-    const previousItem = previous ? (previous.testItems as TestItem[])[0] : null;
+    const currentItem = (current.testItems as unknown as TestItem[])[0];
+    const previousItem = previous ? (previous.testItems as unknown as TestItem[])[0] : null;
 
     const comparison: TestResultComparison = {
       testName,

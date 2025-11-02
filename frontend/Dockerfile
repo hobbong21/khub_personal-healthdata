@@ -1,52 +1,35 @@
-# Multi-stage build for production optimization
-FROM node:18-alpine AS base
+# 프론트엔드 Dockerfile
+FROM node:18-alpine AS builder
 
-# Build stage
-FROM base AS builder
+# 작업 디렉토리 설정
 WORKDIR /app
 
-# Copy package files
+# 패키지 파일 복사
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci
+# 의존성 설치
+RUN npm ci --only=production
 
-# Copy source code
+# 소스 코드 복사
 COPY . .
 
-# Build the application
+# 빌드 (Vite 사용)
 RUN npm run build
 
-# Production stage with nginx
-FROM nginx:alpine AS runner
+# Nginx를 사용한 프로덕션 이미지
+FROM nginx:alpine
 
-# Copy built application to nginx
+# 빌드된 파일을 Nginx로 복사
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copy nginx configuration
+# 정적 파일들도 복사 (public 폴더의 HTML 파일들)
+COPY --from=builder /app/public /usr/share/nginx/html
+
+# Nginx 설정 파일 복사
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Create non-root user for security
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
+# 포트 노출
+EXPOSE 80
 
-# Set proper permissions
-RUN chown -R nodejs:nodejs /usr/share/nginx/html
-RUN chown -R nodejs:nodejs /var/cache/nginx
-RUN chown -R nodejs:nodejs /var/log/nginx
-RUN chown -R nodejs:nodejs /etc/nginx/conf.d
-RUN touch /var/run/nginx.pid
-RUN chown -R nodejs:nodejs /var/run/nginx.pid
-
-# Switch to non-root user
-USER nodejs
-
-# Expose port
-EXPOSE 3000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
-
-# Start nginx
+# Nginx 시작
 CMD ["nginx", "-g", "daemon off;"]

@@ -1,84 +1,83 @@
+# 개발 환경용 Docker Compose
 version: '3.8'
 
 services:
-  # PostgreSQL Database for Development
-  postgres:
+  # PostgreSQL 데이터베이스 (개발용)
+  postgres-dev:
     image: postgres:15-alpine
-    container_name: health-platform-postgres-dev
+    container_name: khub-postgres-dev
     environment:
-      POSTGRES_DB: health_platform_dev
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: khub_dev
+      POSTGRES_USER: khub_dev
+      POSTGRES_PASSWORD: dev_password
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
-      - ./backend/migrations:/docker-entrypoint-initdb.d
     ports:
-      - "5432:5432"
+      - "5433:5432"
     networks:
-      - health-platform-dev-network
+      - khub-dev-network
 
-  # Redis Cache for Development
-  redis:
+  # Redis 캐시 (개발용)
+  redis-dev:
     image: redis:7-alpine
-    container_name: health-platform-redis-dev
+    container_name: khub-redis-dev
     command: redis-server --appendonly yes
     volumes:
       - redis_dev_data:/data
     ports:
-      - "6379:6379"
+      - "6380:6379"
     networks:
-      - health-platform-dev-network
+      - khub-dev-network
 
-  # Backend API for Development (with hot reload)
+  # 백엔드 개발 서버
   backend-dev:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
-    container_name: health-platform-backend-dev
+    container_name: khub-backend-dev
     environment:
       NODE_ENV: development
-      PORT: 5000
-      DATABASE_URL: postgresql://postgres:password@postgres:5432/health_platform_dev
-      REDIS_URL: redis://redis:6379
-      JWT_SECRET: dev-jwt-secret-key
+      PORT: 3000
+      DATABASE_URL: postgresql://khub_dev:dev_password@postgres-dev:5432/khub_dev
+      REDIS_URL: redis://redis-dev:6379
+      JWT_SECRET: dev-jwt-secret
     volumes:
       - ./backend:/app
       - /app/node_modules
       - ./backend/uploads:/app/uploads
     ports:
-      - "5000:5000"
-    depends_on:
-      - postgres
-      - redis
+      - "3001:3000"
     networks:
-      - health-platform-dev-network
+      - khub-dev-network
+    depends_on:
+      - postgres-dev
+      - redis-dev
     command: npm run dev
 
-  # Frontend for Development (with hot reload)
+  # 프론트엔드 개발 서버
   frontend-dev:
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
-    container_name: health-platform-frontend-dev
+    container_name: khub-frontend-dev
     environment:
       NODE_ENV: development
+      VITE_API_URL: http://localhost:3001
     volumes:
       - ./frontend:/app
       - /app/node_modules
     ports:
-      - "3000:3000"
+      - "5173:5173"
+    networks:
+      - khub-dev-network
     depends_on:
       - backend-dev
-    networks:
-      - health-platform-dev-network
     command: npm run dev
 
 volumes:
   postgres_dev_data:
-    driver: local
   redis_dev_data:
-    driver: local
 
 networks:
-  health-platform-dev-network:
+  khub-dev-network:
     driver: bridge

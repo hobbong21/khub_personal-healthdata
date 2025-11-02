@@ -1,0 +1,32 @@
+{
+  "totalTests": 1,
+  "successfulTests": 1,
+  "failedTests": 0,
+  "avgLoadTime": 2009,
+  "results": [
+    {
+      "testName": "메인 페이지",
+      "url": "http://localhost:5173",
+      "success": true,
+      "statusCode": 200,
+      "loadTime": 2009,
+      "metrics": {
+        "jsHeapUsedSize": 3640544,
+        "jsHeapTotalSize": 5767168,
+        "domNodes": 406,
+        "documents": 5,
+        "frames": 2,
+        "eventListeners": 142
+      },
+      "webVitals": {},
+      "resourceSizes": {
+        "totalSize": 2510564,
+        "jsSize": 1257168,
+        "cssSize": 5208,
+        "imageSize": 652,
+        "fontSize": 0
+      },
+      "timestamp": "2025-11-02T13:13:25.398Z"
+    }
+  ]
+}

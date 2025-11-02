@@ -1,0 +1,491 @@
+pipeline {
+    agent any
+    
+    environment {
+        NODE_VERSION = '18'
+        DOCKER_REGISTRY = 'your-registry.com'
+        BACKEND_IMAGE = "${DOCKER_REGISTRY}/khub/backend"
+        FRONTEND_IMAGE = "${DOCKER_REGISTRY}/khub/frontend"
+        KUBECONFIG = credentials('kubeconfig')
+        SLACK_WEBHOOK = credentials('slack-webhook-url')
+        
+        // 환경별 설정
+        STAGING_NAMESPACE = 'khub-staging'
+        PRODUCTION_NAMESPACE = 'khub-production'
+        STAGING_URL = 'https://staging.khub.example.com'
+        PRODUCTION_URL = 'https://khub.example.com'
+    }
+    
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        timeout(time: 60, unit: 'MINUTES')
+        timestamps()
+        ansiColor('xterm')
+    }
+    
+    triggers {
+        githubPush()
+        pollSCM('H/5 * * * *')
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                script {
+                    env.GIT_COMMIT_SHORT = sh(
+                        script: 'git rev-parse --short HEAD',
+                        returnStdout: true
+                    ).trim()
+                    env.BUILD_VERSION = "${env.BUILD_NUMBER}-${env.GIT_COMMIT_SHORT}"
+                }
+            }
+        }
+        
+        stage('Setup') {
+            parallel {
+                stage('Setup Node.js') {
+                    steps {
+                        sh '''
+                            node --version
+                            npm --version
+                        '''
+                    }
+                }
+                
+                stage('Setup Docker') {
+                    steps {
+                        sh '''
+                            docker --version
+                            docker-compose --version
+                        '''
+                    }
+                }
+                
+                stage('Setup Environment') {
+                    steps {
+                        sh '''
+                            cp .env.example .env
+                            sed -i 's/your-secure-postgres-password/test_password/g' .env
+                            sed -i 's/your-secure-redis-password/test_redis_password/g' .env
+                            sed -i 's/your-super-secret-jwt-key/test-jwt-secret/g' .env
+                        '''
+                    }
+                }
+            }
+        }
+        
+        stage('Code Quality') {
+            parallel {
+                stage('Backend Lint') {
+                    steps {
+                        dir('backend') {
+                            sh '''
+                                npm ci
+                                npm run lint
+                                npm run format:check
+                            '''
+                        }
+                    }
+                }
+                
+                stage('Frontend Lint') {
+                    steps {
+                        dir('frontend') {
+                            sh '''
+                                npm ci
+                                npm run lint
+                                npm run format:check
+                            '''
+                        }
+                    }
+                }
+                
+                stage('Security Audit') {
+                    steps {
+                        script {
+                            try {
+                                dir('backend') {
+                                    sh 'npm audit --audit-level=high'
+                                }
+                                dir('frontend') {
+                                    sh 'npm audit --audit-level=high'
+                                }
+                            } catch (Exception e) {
+                                currentBuild.result = 'UNSTABLE'
+                                echo "Security audit found vulnerabilities: ${e.getMessage()}"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Tests') {
+            parallel {
+                stage('Backend Tests') {
+                    steps {
+                        script {
+                            docker.image('postgres:15').withRun('-e POSTGRES_DB=khub_test -e POSTGRES_USER=test_user -e POSTGRES_PASSWORD=test_password') { postgres ->
+                                docker.image('redis:7').withRun() { redis ->
+                                    dir('backend') {
+                                        sh '''
+                                            export DATABASE_URL="postgresql://test_user:test_password@localhost:5432/khub_test"
+                                            export REDIS_URL="redis://localhost:6379"
+                                            export JWT_SECRET="test-jwt-secret"
+                                            export NODE_ENV="test"
+                                            
+                                            npm ci
+                                            npx prisma generate
+                                            npx prisma migrate deploy
+                                            npm run test
+                                            npm run test:coverage
+                                        '''
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    post {
+                        always {
+                            publishHTML([
+                                allowMissing: false,
+                                alwaysLinkToLastBuild: true,
+                                keepAll: true,
+                                reportDir: 'backend/coverage/lcov-report',
+                                reportFiles: 'index.html',
+                                reportName: 'Backend Coverage Report'
+                            ])
+                            
+                            publishTestResults testResultsPattern: 'backend/test-results.xml'
+                        }
+                    }
+                }
+                
+                stage('Frontend Tests') {
+                    steps {
+                        dir('frontend') {
+                            sh '''
+                                npm ci
+                                npm run test
+                                npm run test:coverage
+                            '''
+                        }
+                    }
+                    post {
+                        always {
+                            publishHTML([
+                                allowMissing: false,
+                                alwaysLinkToLastBuild: true,
+                                keepAll: true,
+                                reportDir: 'frontend/coverage/lcov-report',
+                                reportFiles: 'index.html',
+                                reportName: 'Frontend Coverage Report'
+                            ])
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Build') {
+            when {
+                anyOf {
+                    branch 'main'
+                    branch 'develop'
+                    buildingTag()
+                }
+            }
+            parallel {
+                stage('Build Backend') {
+                    steps {
+                        script {
+                            def backendImage = docker.build("${BACKEND_IMAGE}:${BUILD_VERSION}", "./backend")
+                            
+                            docker.withRegistry("https://${DOCKER_REGISTRY}", 'docker-registry-credentials') {
+                                backendImage.push()
+                                backendImage.push('latest')
+                            }
+                        }
+                    }
+                }
+                
+                stage('Build Frontend') {
+                    steps {
+                        script {
+                            def frontendImage = docker.build("${FRONTEND_IMAGE}:${BUILD_VERSION}", "./frontend")
+                            
+                            docker.withRegistry("https://${DOCKER_REGISTRY}", 'docker-registry-credentials') {
+                                frontendImage.push()
+                                frontendImage.push('latest')
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Security Scan') {
+            when {
+                anyOf {
+                    branch 'main'
+                    branch 'develop'
+                    buildingTag()
+                }
+            }
+            parallel {
+                stage('Scan Backend Image') {
+                    steps {
+                        script {
+                            sh """
+                                docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \\
+                                    aquasec/trivy image --exit-code 1 --severity HIGH,CRITICAL \\
+                                    ${BACKEND_IMAGE}:${BUILD_VERSION}
+                            """
+                        }
+                    }
+                }
+                
+                stage('Scan Frontend Image') {
+                    steps {
+                        script {
+                            sh """
+                                docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \\
+                                    aquasec/trivy image --exit-code 1 --severity HIGH,CRITICAL \\
+                                    ${FRONTEND_IMAGE}:${BUILD_VERSION}
+                            """
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('E2E Tests') {
+            when {
+                anyOf {
+                    branch 'main'
+                    branch 'develop'
+                }
+            }
+            steps {
+                script {
+                    try {
+                        sh '''
+                            docker-compose -f docker-compose.dev.yml up -d
+                            sleep 30
+                            
+                            # Wait for services to be ready
+                            timeout 60 bash -c 'until curl -f http://localhost:3001/api/health; do sleep 2; done'
+                            timeout 60 bash -c 'until curl -f http://localhost:5173; do sleep 2; done'
+                        '''
+                        
+                        dir('e2e-tests') {
+                            sh '''
+                                npm ci
+                                npx playwright install
+                                npm run test
+                            '''
+                        }
+                    } finally {
+                        sh 'docker-compose -f docker-compose.dev.yml down'
+                    }
+                }
+            }
+            post {
+                always {
+                    publishHTML([
+                        allowMissing: true,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'e2e-tests/playwright-report',
+                        reportFiles: 'index.html',
+                        reportName: 'E2E Test Report'
+                    ])
+                }
+            }
+        }
+        
+        stage('Deploy to Staging') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    sh """
+                        helm upgrade --install khub-staging ./helm/khub \\
+                            --namespace ${STAGING_NAMESPACE} \\
+                            --create-namespace \\
+                            --set image.backend.repository=${BACKEND_IMAGE} \\
+                            --set image.backend.tag=${BUILD_VERSION} \\
+                            --set image.frontend.repository=${FRONTEND_IMAGE} \\
+                            --set image.frontend.tag=${BUILD_VERSION} \\
+                            --set environment=staging \\
+                            --values ./helm/khub/values-staging.yaml \\
+                            --wait --timeout=300s
+                    """
+                    
+                    // Health check
+                    sh """
+                        kubectl rollout status deployment/khub-backend -n ${STAGING_NAMESPACE} --timeout=300s
+                        kubectl rollout status deployment/khub-frontend -n ${STAGING_NAMESPACE} --timeout=300s
+                        curl -f ${STAGING_URL}/api/health
+                    """
+                }
+            }
+        }
+        
+        stage('Performance Tests') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    sh '''
+                        docker run --rm -v $(pwd)/performance-tests:/scripts \\
+                            grafana/k6:latest run --out json=/scripts/performance-results.json /scripts/load-test.js
+                    '''
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'performance-tests/performance-results.json', fingerprint: true
+                }
+            }
+        }
+        
+        stage('Deploy to Production') {
+            when {
+                anyOf {
+                    branch 'main'
+                    buildingTag()
+                }
+            }
+            steps {
+                script {
+                    // 수동 승인 요청
+                    def userInput = input(
+                        id: 'ProductionDeploy',
+                        message: 'Deploy to Production?',
+                        parameters: [
+                            choice(
+                                choices: ['Deploy', 'Abort'],
+                                description: 'Choose action',
+                                name: 'ACTION'
+                            )
+                        ]
+                    )
+                    
+                    if (userInput == 'Deploy') {
+                        // 데이터베이스 백업
+                        sh """
+                            kubectl create job --from=cronjob/postgres-backup \\
+                                backup-\$(date +%Y%m%d-%H%M%S) -n ${PRODUCTION_NAMESPACE}
+                        """
+                        
+                        // Blue-Green 배포
+                        sh """
+                            helm upgrade --install khub-production ./helm/khub \\
+                                --namespace ${PRODUCTION_NAMESPACE} \\
+                                --create-namespace \\
+                                --set image.backend.repository=${BACKEND_IMAGE} \\
+                                --set image.backend.tag=${BUILD_VERSION} \\
+                                --set image.frontend.repository=${FRONTEND_IMAGE} \\
+                                --set image.frontend.tag=${BUILD_VERSION} \\
+                                --set environment=production \\
+                                --set deployment.strategy=blue-green \\
+                                --values ./helm/khub/values-production.yaml \\
+                                --wait --timeout=600s
+                        """
+                        
+                        // Health check
+                        sh """
+                            kubectl rollout status deployment/khub-backend -n ${PRODUCTION_NAMESPACE} --timeout=600s
+                            kubectl rollout status deployment/khub-frontend -n ${PRODUCTION_NAMESPACE} --timeout=600s
+                            
+                            for i in {1..10}; do
+                                if curl -f ${PRODUCTION_URL}/api/health; then
+                                    echo "Health check passed"
+                                    break
+                                fi
+                                echo "Health check failed, retrying in 30s..."
+                                sleep 30
+                            done
+                        """
+                    } else {
+                        error('Production deployment aborted by user')
+                    }
+                }
+            }
+        }
+        
+        stage('Post-Deployment Monitoring') {
+            when {
+                anyOf {
+                    branch 'main'
+                    buildingTag()
+                }
+            }
+            steps {
+                script {
+                    // 5분간 모니터링
+                    sleep(300)
+                    
+                    // 메트릭 확인
+                    def errorRate = sh(
+                        script: '''
+                            curl -s "${PROMETHEUS_URL}/api/v1/query?query=rate(http_requests_total{status=~\\"5..\\"}[5m])" | \\
+                            jq -r '.data.result[0].value[1] // "0"'
+                        ''',
+                        returnStdout: true
+                    ).trim()
+                    
+                    if (errorRate.toFloat() > 0.01) {
+                        error("High error rate detected: ${errorRate}")
+                    }
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            // 정리
+            sh '''
+                docker system prune -f
+                docker-compose -f docker-compose.dev.yml down || true
+            '''
+        }
+        
+        success {
+            script {
+                if (env.BRANCH_NAME == 'main' || env.TAG_NAME) {
+                    sh """
+                        curl -X POST -H 'Content-type: application/json' \\
+                            --data '{"text":"✅ K-hub deployment successful! Version: ${BUILD_VERSION}, Environment: Production"}' \\
+                            ${SLACK_WEBHOOK}
+                    """
+                }
+            }
+        }
+        
+        failure {
+            script {
+                sh """
+                    curl -X POST -H 'Content-type: application/json' \\
+                        --data '{"text":"❌ K-hub pipeline failed! Build: ${BUILD_NUMBER}, Branch: ${BRANCH_NAME}, Commit: ${GIT_COMMIT_SHORT}"}' \\
+                        ${SLACK_WEBHOOK}
+                """
+            }
+        }
+        
+        unstable {
+            script {
+                sh """
+                    curl -X POST -H 'Content-type: application/json' \\
+                        --data '{"text":"⚠️ K-hub pipeline unstable! Build: ${BUILD_NUMBER}, Branch: ${BRANCH_NAME}"}' \\
+                        ${SLACK_WEBHOOK}
+                """
+            }
+        }
+    }
+}

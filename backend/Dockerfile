@@ -1,66 +1,45 @@
-# Multi-stage build for production optimization
-FROM node:18-alpine AS base
+# 백엔드 Dockerfile
+FROM node:18-alpine
 
-# Install dependencies only when needed
-FROM base AS deps
+# 작업 디렉토리 설정
 WORKDIR /app
 
-# Copy package files
+# 시스템 의존성 설치 (PostgreSQL 클라이언트 등)
+RUN apk add --no-cache \
+    postgresql-client \
+    python3 \
+    make \
+    g++
+
+# 패키지 파일 복사
 COPY package*.json ./
-COPY prisma ./prisma/
 
-# Install dependencies
-RUN npm ci --only=production && npm cache clean --force
+# 의존성 설치
+RUN npm ci --only=production
 
-# Generate Prisma client
-RUN npx prisma generate
-
-# Build stage
-FROM base AS builder
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-COPY prisma ./prisma/
-
-# Install all dependencies (including dev dependencies)
-RUN npm ci
-
-# Copy source code
+# 소스 코드 복사
 COPY . .
 
-# Generate Prisma client
+# Prisma 클라이언트 생성
 RUN npx prisma generate
 
-# Build the application
+# TypeScript 빌드
 RUN npm run build
 
-# Production stage
-FROM base AS runner
-WORKDIR /app
+# 비root 사용자 생성
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nodejs -u 1001
 
-# Create non-root user for security
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nodejs
-
-# Copy built application
-COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
-COPY --from=builder --chown=nodejs:nodejs /app/prisma ./prisma
-COPY --from=deps --chown=nodejs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nodejs:nodejs /app/package*.json ./
-
-# Create uploads directory
-RUN mkdir -p uploads && chown nodejs:nodejs uploads
-
-# Switch to non-root user
+# 파일 소유권 변경
+RUN chown -R nodejs:nodejs /app
 USER nodejs
 
-# Expose port
-EXPOSE 5000
+# 포트 노출
+EXPOSE 3000
 
-# Health check
+# 헬스체크
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:5000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+    CMD node healthcheck.js
 
-# Start the application
+# 애플리케이션 시작
 CMD ["npm", "start"]
