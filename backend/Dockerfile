@@ -1,45 +1,66 @@
-# 백엔드 Dockerfile
-FROM node:18-alpine
+# Multi-stage build for optimized production image
 
-# 작업 디렉토리 설정
+# Stage 1: Build
+FROM node:20-alpine AS builder
+
+# Set working directory
 WORKDIR /app
 
-# 시스템 의존성 설치 (PostgreSQL 클라이언트 등)
-RUN apk add --no-cache \
-    postgresql-client \
-    python3 \
-    make \
-    g++
-
-# 패키지 파일 복사
+# Copy package files
 COPY package*.json ./
 
-# 의존성 설치
-RUN npm ci --only=production
+# Install all dependencies (including dev dependencies for build)
+RUN npm ci && \
+    npm cache clean --force
 
-# 소스 코드 복사
+# Copy source code
 COPY . .
 
-# Prisma 클라이언트 생성
-RUN npx prisma generate
-
-# TypeScript 빌드
+# Build TypeScript
 RUN npm run build
 
-# 비root 사용자 생성
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
+# Stage 2: Production
+FROM node:20-alpine AS production
 
-# 파일 소유권 변경
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init curl
+
+# Create app user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install only production dependencies
+RUN npm ci --only=production && \
+    npm cache clean --force
+
+# Copy built application from builder
+COPY --from=builder /app/dist ./dist
+
+# Copy necessary files
+COPY --from=builder /app/migrations ./migrations
+COPY --from=builder /app/seeds ./seeds
+
+# Change ownership to nodejs user
 RUN chown -R nodejs:nodejs /app
+
+# Switch to nodejs user
 USER nodejs
 
-# 포트 노출
-EXPOSE 3000
+# Expose port
+EXPOSE 5001
 
-# 헬스체크
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD node healthcheck.js
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:5001/health || exit 1
 
-# 애플리케이션 시작
-CMD ["npm", "start"]
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start application
+CMD ["node", "dist/server.js"]

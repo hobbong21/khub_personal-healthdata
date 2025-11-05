@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
-import Redis from 'redis';
+import { createClient } from 'redis';
 
 // Redis 클라이언트 설정
-const redis = Redis.createClient({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
-  password: process.env.REDIS_PASSWORD,
-  retryDelayOnFailover: 100,
-  maxRetriesPerRequest: 3
+const redis = createClient({
+  socket: {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6379')
+  },
+  password: process.env.REDIS_PASSWORD
 });
 
 redis.on('error', (err) => {
@@ -17,6 +17,9 @@ redis.on('error', (err) => {
 redis.on('connect', () => {
   console.log('✅ Redis 연결 성공');
 });
+
+// Redis 연결
+redis.connect().catch(console.error);
 
 // 캐시 키 생성 함수
 const generateCacheKey = (req: Request): string => {
@@ -53,7 +56,7 @@ export const cacheMiddleware = (ttl: number = 300) => {
       res.json = function(data: any) {
         // 성공적인 응답만 캐싱
         if (res.statusCode === 200) {
-          redis.setex(cacheKey, ttl, JSON.stringify(data))
+          redis.setEx(cacheKey, ttl, JSON.stringify(data))
             .catch(err => console.error('캐시 저장 오류:', err));
           const sanitizedKey = cacheKey.replace(/[\r\n]/g, '');
           console.log(`💾 캐시 저장: ${sanitizedKey}`);
@@ -75,7 +78,7 @@ export const invalidateCache = async (pattern: string): Promise<void> => {
   try {
     const keys = await redis.keys(pattern);
     if (keys.length > 0) {
-      await redis.del(...keys);
+      await redis.del(keys);
       console.log(`🗑️  캐시 무효화: ${keys.length}개 키 삭제`);
     }
   } catch (error) {

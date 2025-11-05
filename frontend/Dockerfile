@@ -1,35 +1,42 @@
-# 프론트엔드 Dockerfile
-FROM node:18-alpine AS builder
+# Multi-stage build for optimized production image
 
-# 작업 디렉토리 설정
+# Stage 1: Build
+FROM node:20-alpine AS builder
+
+# Set working directory
 WORKDIR /app
 
-# 패키지 파일 복사
+# Copy package files
 COPY package*.json ./
 
-# 의존성 설치
-RUN npm ci --only=production
+# Install dependencies
+RUN npm ci --only=production && \
+    npm cache clean --force
 
-# 소스 코드 복사
+# Copy source code
 COPY . .
 
-# 빌드 (Vite 사용)
+# Build application
 RUN npm run build
 
-# Nginx를 사용한 프로덕션 이미지
-FROM nginx:alpine
+# Stage 2: Production
+FROM nginx:alpine AS production
 
-# 빌드된 파일을 Nginx로 복사
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Install curl for healthcheck
+RUN apk add --no-cache curl
 
-# 정적 파일들도 복사 (public 폴더의 HTML 파일들)
-COPY --from=builder /app/public /usr/share/nginx/html
-
-# Nginx 설정 파일 복사
+# Copy custom nginx config
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# 포트 노출
+# Copy built assets from builder stage
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost/ || exit 1
+
+# Expose port
 EXPOSE 80
 
-# Nginx 시작
+# Start nginx
 CMD ["nginx", "-g", "daemon off;"]

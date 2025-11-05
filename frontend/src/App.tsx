@@ -19,10 +19,12 @@ const LandingPage = lazy(() => import('./pages/LandingPage'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
 const FeaturesPage = lazy(() => import('./pages/FeaturesPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
+const ContactPageNew = lazy(() => import('./pages/Contact/ContactPage'));
 
 // 메인 대시보드
 const EnhancedDashboard = lazy(() => import('./pages/EnhancedDashboard'));
 const Dashboard = lazy(() => import('./pages/Dashboard/Dashboard'));
+const DashboardPage = lazy(() => import('./pages/Dashboard/DashboardPage'));
 
 // 404 페이지
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
@@ -38,10 +40,13 @@ const MedicationTrackingPage = lazy(() => import('./pages/MedicationTrackingPage
 // 예약 및 일정
 const AppointmentsPage = lazy(() => import('./pages/AppointmentsPage'));
 const AppointmentBookingPage = lazy(() => import('./pages/AppointmentBookingPage'));
+const AppointmentsPageNew = lazy(() => import('./pages/Appointments/AppointmentsPage'));
 
 // AI 및 분석
 const AIInsightsPage = lazy(() => import('./pages/AIInsightsPage'));
+const AIInsightsPageNew = lazy(() => import('./pages/AIInsights/AIInsightsPage'));
 const GenomicsPage = lazy(() => import('./pages/GenomicsPage'));
+const GenomicsPageNew = lazy(() => import('./pages/Genomics/GenomicsPage'));
 const GenomicsResultsPage = lazy(() => import('./pages/GenomicsResultsPage'));
 const RecommendationsPage = lazy(() => import('./pages/RecommendationsPage'));
 const NLPPage = lazy(() => import('./pages/NLPPage'));
@@ -87,7 +92,7 @@ function App() {
                 <Route path="/landing" element={<LandingPage />} />
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/features" element={<FeaturesPage />} />
-                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/contact" element={<ContactPageNew />} />
                 
 
                 {/* ==================== */}
@@ -97,6 +102,14 @@ function App() {
                 {/* 메인 대시보드 */}
                 <Route 
                   path="/dashboard" 
+                  element={
+                    <ProtectedRoute>
+                      <DashboardPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/dashboard/old" 
                   element={
                     <ProtectedRoute>
                       <EnhancedDashboard />
@@ -159,7 +172,7 @@ function App() {
                   path="/appointments" 
                   element={
                     <ProtectedRoute>
-                      <AppointmentsPage />
+                      <AppointmentsPageNew />
                     </ProtectedRoute>
                   } 
                 />
@@ -177,7 +190,7 @@ function App() {
                   path="/ai-insights" 
                   element={
                     <ProtectedRoute>
-                      <AIInsightsPage />
+                      <AIInsightsPageNew />
                     </ProtectedRoute>
                   } 
                 />
@@ -185,7 +198,7 @@ function App() {
                   path="/genomics" 
                   element={
                     <ProtectedRoute>
-                      <GenomicsPage />
+                      <GenomicsPageNew />
                     </ProtectedRoute>
                   } 
                 />

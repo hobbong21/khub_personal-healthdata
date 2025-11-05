@@ -1,38 +1,19 @@
-# Dependencies
 node_modules
-npm-debug.log*
-
-# Build outputs
-dist/
-build/
-
-# Environment files
-.env
-.env.*
-
-# Logs
-logs
-*.log
-
-# Testing
-coverage/
-
-# IDE
-.vscode/
-.idea/
-
-# OS
-.DS_Store
-
-# Git
+npm-debug.log
 .git
 .gitignore
-
-# Documentation
-README.md
+.env
+.env.local
+.env.*.local
+dist
+coverage
+.vscode
+.idea
 *.md
-
-# Docker files
-Dockerfile*
-docker-compose*.yml
-.dockerignore
+!README.md
+.DS_Store
+Thumbs.db
+*.log
+.cache
+.temp
+html-prototypes

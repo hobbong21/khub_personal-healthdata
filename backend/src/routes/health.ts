@@ -6,14 +6,7 @@ import {
   validateHealthJournal, 
   validateHealthRecordUpdate 
 } from '../middleware/validation';
-import {
-  dashboardCache,
-  trendsCache,
-  goalsCache,
-  healthSummaryCache,
-  invalidateHealthCache,
-  conditionalCache
-} from '../middleware/cache';
+import { cacheMiddleware, invalidateUserCache } from '../middleware/cache';
 
 const router = express.Router();
 
@@ -21,24 +14,24 @@ const router = express.Router();
 router.use(authenticateToken);
 
 // 바이탈 사인 관련 라우트 (요구사항 2.1, 2.2, 2.3, 2.4, 2.5)
-router.post('/vitals', validateVitalSign, invalidateHealthCache, HealthController.createVitalSign);
-router.get('/vitals', HealthController.getVitalSigns);
-router.get('/vitals/trends', conditionalCache(trendsCache), HealthController.getVitalSignTrends);
+router.post('/vitals', validateVitalSign, HealthController.createVitalSign);
+router.get('/vitals', cacheMiddleware(300), HealthController.getVitalSigns);
+router.get('/vitals/trends', cacheMiddleware(600), HealthController.getVitalSignTrends);
 
 // 건강 일지 관련 라우트 (요구사항 3.1, 3.2, 3.3, 3.4, 3.5)
-router.post('/journal', validateHealthJournal, invalidateHealthCache, HealthController.createHealthJournal);
-router.get('/journal', HealthController.getHealthJournals);
+router.post('/journal', validateHealthJournal, HealthController.createHealthJournal);
+router.get('/journal', cacheMiddleware(300), HealthController.getHealthJournals);
 
 // 건강 기록 수정/삭제 라우트 (요구사항 2.5)
-router.put('/records/:recordId', validateHealthRecordUpdate, invalidateHealthCache, HealthController.updateHealthRecord);
-router.delete('/records/:recordId', invalidateHealthCache, HealthController.deleteHealthRecord);
+router.put('/records/:recordId', validateHealthRecordUpdate, HealthController.updateHealthRecord);
+router.delete('/records/:recordId', HealthController.deleteHealthRecord);
 
 // 건강 데이터 대시보드 요약
-router.get('/summary', conditionalCache(healthSummaryCache), HealthController.getHealthSummary);
+router.get('/summary', cacheMiddleware(300), HealthController.getHealthSummary);
 
 // 대시보드 관련 라우트 (요구사항 4.1, 4.2, 4.3)
-router.get('/dashboard', conditionalCache(dashboardCache), HealthController.getDashboardData);
-router.get('/dashboard/trends', conditionalCache(trendsCache), HealthController.getHealthTrends);
-router.get('/dashboard/goals', conditionalCache(goalsCache), HealthController.getGoalProgress);
+router.get('/dashboard', cacheMiddleware(300), HealthController.getDashboardData);
+router.get('/dashboard/trends', cacheMiddleware(600), HealthController.getHealthTrends);
+router.get('/dashboard/goals', cacheMiddleware(300), HealthController.getGoalProgress);
 
 export default router;

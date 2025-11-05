@@ -1,26 +1,20 @@
-<!-- 공통 풋터 - 모든 페이지에 복사하여 사용 -->
+<!-- 공통 푸터 - 모든 페이지에 복사하여 사용 -->
 <style>
     /* Footer */
     .footer {
-        background: #1f2937;
+        background: #1a202c;
         color: white;
+        padding: 3rem 2rem 2rem;
         margin-top: 4rem;
-        padding: 3rem 0 1.5rem;
-    }
-
-    .footer-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 0 2rem;
     }
 
     .footer-content {
+        max-width: 1400px;
+        margin: 0 auto;
         display: grid;
-        grid-template-columns: 2fr 1fr 1fr 1fr;
-        gap: 3rem;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
         margin-bottom: 2rem;
-        padding-bottom: 2rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .footer-section h3 {
@@ -29,10 +23,9 @@
         color: white;
     }
 
-    .footer-about p {
-        color: rgba(255, 255, 255, 0.7);
+    .footer-section p {
+        color: rgba(255,255,255,0.7);
         line-height: 1.6;
-        margin-bottom: 1rem;
     }
 
     .footer-links {
@@ -41,156 +34,73 @@
     }
 
     .footer-links li {
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.5rem;
     }
 
     .footer-links a {
-        color: rgba(255, 255, 255, 0.7);
+        color: rgba(255,255,255,0.7);
         text-decoration: none;
-        transition: color 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+        transition: color 0.3s;
+        display: inline-block;
     }
 
     .footer-links a:hover {
         color: white;
     }
 
-    .footer-social {
-        display: flex;
-        gap: 1rem;
-        margin-top: 1rem;
-    }
-
-    .social-link {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        text-decoration: none;
-        font-size: 1.25rem;
-        transition: all 0.2s;
-    }
-
-    .social-link:hover {
-        background: #667eea;
-        transform: translateY(-2px);
-    }
-
     .footer-bottom {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-top: 1.5rem;
-        color: rgba(255, 255, 255, 0.6);
+        max-width: 1400px;
+        margin: 0 auto;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        text-align: center;
+        color: rgba(255,255,255,0.7);
         font-size: 0.875rem;
     }
 
-    .footer-bottom-links {
-        display: flex;
-        gap: 1.5rem;
-    }
-
-    .footer-bottom-links a {
-        color: rgba(255, 255, 255, 0.6);
-        text-decoration: none;
-        transition: color 0.2s;
-    }
-
-    .footer-bottom-links a:hover {
-        color: white;
-    }
-
-    /* Responsive */
-    @media (max-width: 968px) {
+    @media (max-width: 768px) {
         .footer-content {
             grid-template-columns: 1fr;
-            gap: 2rem;
-        }
-
-        .footer-bottom {
-            flex-direction: column;
-            gap: 1rem;
-            text-align: center;
-        }
-
-        .footer-bottom-links {
-            flex-direction: column;
-            gap: 0.5rem;
         }
     }
 </style>
 
 <!-- Footer HTML -->
 <footer class="footer">
-    <div class="footer-container">
-        <div class="footer-content">
-            <!-- About Section -->
-            <div class="footer-section footer-about">
-                <h3>🏥 KnowledgeHub</h3>
-                <p>
-                    AI와 유전체 분석을 활용한 차세대 개인 건강 관리 플랫폼.
-                    당신의 건강 데이터를 하나로 통합하고, 맞춤형 인사이트를 제공합니다.
-                </p>
-                <div class="footer-social">
-                    <a href="#" class="social-link" title="Facebook">📘</a>
-                    <a href="#" class="social-link" title="Twitter">🐦</a>
-                    <a href="#" class="social-link" title="Instagram">📷</a>
-                    <a href="#" class="social-link" title="LinkedIn">💼</a>
-                </div>
-            </div>
-
-            <!-- Quick Links -->
-            <div class="footer-section">
-                <h3>빠른 링크</h3>
-                <ul class="footer-links">
-                    <li><a href="dashboard.html">📊 대시보드</a></li>
-                    <li><a href="health-data-input.html">📝 건강 데이터</a></li>
-                    <li><a href="medical-records.html">🏥 진료 기록</a></li>
-                    <li><a href="medications.html">💊 복약 관리</a></li>
-                    <li><a href="genomics.html">🧬 유전체 분석</a></li>
-                </ul>
-            </div>
-
-            <!-- Resources -->
-            <div class="footer-section">
-                <h3>리소스</h3>
-                <ul class="footer-links">
-                    <li><a href="guide.html">📚 사용 가이드</a></li>
-                    <li><a href="index.html#faq">❓ FAQ</a></li>
-                    <li><a href="index.html#about">ℹ️ 회사 소개</a></li>
-                    <li><a href="index.html#contact">📧 문의하기</a></li>
-                    <li><a href="#">🔒 개인정보처리방침</a></li>
-                </ul>
-            </div>
-
-            <!-- Contact -->
-            <div class="footer-section">
-                <h3>연락처</h3>
-                <ul class="footer-links">
-                    <li><a href="mailto:contact@knowledgehub.com">📧 contact@knowledgehub.com</a></li>
-                    <li><a href="tel:02-1234-5678">📞 02-1234-5678</a></li>
-                    <li><a href="#">📍 서울시 강남구 테헤란로 123</a></li>
-                    <li><a href="#">⏰ 평일 09:00 - 18:00</a></li>
-                </ul>
-            </div>
+    <div class="footer-content">
+        <div class="footer-section">
+            <h3>KnowledgeHub</h3>
+            <p>AI 기반 개인 건강 관리의 새로운 표준</p>
         </div>
-
-        <!-- Bottom Bar -->
-        <div class="footer-bottom">
-            <div>
-                © 2025 KnowledgeHub. All rights reserved.
-            </div>
-            <div class="footer-bottom-links">
-                <a href="#">이용약관</a>
-                <a href="#">개인정보처리방침</a>
-                <a href="#">쿠키 정책</a>
-            </div>
+        <div class="footer-section">
+            <h3>서비스</h3>
+            <ul class="footer-links">
+                <li><a href="dashboard.html">대시보드</a></li>
+                <li><a href="health-data-input.html">건강 데이터</a></li>
+                <li><a href="ai-insights.html">AI 인사이트</a></li>
+                <li><a href="genomics.html">유전체 분석</a></li>
+                <li><a href="appointments.html">진료 예약</a></li>
+            </ul>
         </div>
+        <div class="footer-section">
+            <h3>회사</h3>
+            <ul class="footer-links">
+                <li><a href="index.html#about">회사소개</a></li>
+                <li><a href="index.html#team">팀</a></li>
+                <li><a href="guide.html">가이드</a></li>
+                <li><a href="contact.html">문의하기</a></li>
+            </ul>
+        </div>
+        <div class="footer-section">
+            <h3>법적 고지</h3>
+            <ul class="footer-links">
+                <li><a href="#">이용약관</a></li>
+                <li><a href="#">개인정보처리방침</a></li>
+                <li><a href="#">의료정보 고지</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2025 KnowledgeHub. All rights reserved.</p>
     </div>
 </footer>

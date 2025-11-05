@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문의하기 - 개인 건강 플랫폼</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            padding: 0;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+
+        /* Navigation Bar */
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            margin-bottom: 0;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: #667eea;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .nav-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1rem;
+            color: #4b5563;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background: #f3f4f6;
+            color: #667eea;
+        }
+
+        .nav-icon { font-size: 1.125rem; }
+
+        .nav-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .nav-btn {
+            padding: 0.625rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .nav-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-btn-outline {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .nav-btn-outline:hover {
+            background: #eff6ff;
+        }
+
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 2rem;
+            border-radius: 12px;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .page-header h1 { 
+            font-size: 3rem; 
+            margin-bottom: 1rem;
+        }
+        
+        .page-header p { 
+            font-size: 1.25rem; 
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Contact Container */
+        .contact-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Contact Info */
+        .contact-info {
+            background: white;
+            padding: 3rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .contact-info h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 1rem;
+        }
+
+        .contact-info > p {
+            color: #718096;
+            font-size: 1.125rem;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+
+        .contact-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.5rem;
+        }
+
+        .contact-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.75rem;
+            flex-shrink: 0;
+        }
+
+        .contact-text h4 {
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+            font-size: 1.125rem;
+        }
+
+        .contact-text p {
+            color: #718096;
+            font-size: 1rem;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .contact-text a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .contact-text a:hover {
+            text-decoration: underline;
+        }
+
+        /* Contact Form */
+        .contact-form-card {
+            background: white;
+            padding: 3rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .contact-form-card h3 {
+            font-size: 1.5rem;
+            color: #1a202c;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        .form-submit {
+            width: 100%;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .form-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        /* FAQ Section */
+        .faq-section {
+            max-width: 1200px;
+            margin: 4rem auto 0;
+            background: white;
+            padding: 3rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .faq-section h2 {
+            font-size: 2rem;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .faq-section > p {
+            text-align: center;
+            color: #718096;
+            margin-bottom: 2rem;
+        }
+
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+
+        .faq-item {
+            padding: 1.5rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+
+        .faq-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        }
+
+        .faq-question {
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 0.75rem;
+            font-size: 1.125rem;
+        }
+
+        .faq-answer {
+            color: #718096;
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        .footer {
+            background: #1a202c;
+            color: white;
+            padding: 3rem 2rem 2rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3 {
+            font-size: 1.125rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+            color: rgba(255,255,255,0.7);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .contact-container {
+                grid-template-columns: 1fr;
+            }
+
+            .faq-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header h1 {
+                font-size: 2rem;
+            }
+
+            .page-header p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <div class="nav-logo-icon">🏥</div>
+                <span>KnowledgeHub</span>
+            </a>
+
+            <ul class="nav-menu">
+                <li><a href="dashboard.html" class="nav-link">
+                    <span class="nav-icon">📊</span>
+                    <span>대시보드</span>
+                </a></li>
+                <li><a href="health-data-input.html" class="nav-link">
+                    <span class="nav-icon">📝</span>
+                    <span>건강 데이터</span>
+                </a></li>
+                <li><a href="medical-records.html" class="nav-link">
+                    <span class="nav-icon">🏥</span>
+                    <span>진료 기록</span>
+                </a></li>
+                <li><a href="genomics.html" class="nav-link">
+                    <span class="nav-icon">🧬</span>
+                    <span>유전체 분석</span>
+                </a></li>
+            </ul>
+
+            <div class="nav-actions">
+                <a href="guide.html" class="nav-btn nav-btn-outline">
+                    <span>📚</span>
+                    <span>가이드</span>
+                </a>
+                <a href="index.html" class="nav-btn nav-btn-primary">
+                    <span>🏠</span>
+                    <span>홈</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>💬 문의하기</h1>
+            <p>KnowledgeHub에 대해 궁금한 점이 있으신가요? 언제든지 문의해 주세요!</p>
+        </div>
+
+        <!-- Contact Container -->
+        <div class="contact-container">
+            <!-- Contact Info -->
+            <div class="contact-info">
+                <h2>연락처 정보</h2>
+                <p>
+                    저희 팀이 최대한 빠르게 답변드리겠습니다. 
+                    아래 연락처로 직접 문의하실 수도 있습니다.
+                </p>
+
+                <div class="contact-details">
+                    <div class="contact-item">
+                        <div class="contact-icon">📧</div>
+                        <div class="contact-text">
+                            <h4>이메일</h4>
+                            <p><a href="mailto:support@knowledgehub.com">support@knowledgehub.com</a></p>
+                            <p style="margin-top: 0.5rem; font-size: 0.875rem;">24시간 이내 답변</p>
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="contact-icon">📞</div>
+                        <div class="contact-text">
+                            <h4>전화</h4>
+                            <p><a href="tel:+82-2-1234-5678">02-1234-5678</a></p>
+                            <p style="margin-top: 0.5rem; font-size: 0.875rem;">평일 09:00 - 18:00</p>
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="contact-icon">📍</div>
+                        <div class="contact-text">
+                            <h4>주소</h4>
+                            <p>서울특별시 강남구 테헤란로 123</p>
+                            <p style="margin-top: 0.5rem;">KnowledgeHub 빌딩 5층</p>
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="contact-icon">💬</div>
+                        <div class="contact-text">
+                            <h4>실시간 채팅</h4>
+                            <p>평일 09:00 - 18:00</p>
+                            <p style="margin-top: 0.5rem;"><a href="#" onclick="alert('채팅 기능 준비 중입니다.')">채팅 시작하기 →</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Form -->
+            <div class="contact-form-card">
+                <h3>메시지 보내기</h3>
+                <form id="contactForm" onsubmit="handleSubmit(event)">
+                    <div class="form-group">
+                        <label class="form-label">이름 *</label>
+                        <input type="text" class="form-input" placeholder="홍길동" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">이메일 *</label>
+                        <input type="email" class="form-input" placeholder="example@email.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">문의 유형 *</label>
+                        <select class="form-select" required>
+                            <option value="">선택해주세요</option>
+                            <option value="general">일반 문의</option>
+                            <option value="technical">기술 지원</option>
+                            <option value="billing">결제 문의</option>
+                            <option value="partnership">제휴 문의</option>
+                            <option value="other">기타</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">제목 *</label>
+                        <input type="text" class="form-input" placeholder="문의 제목" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">메시지 *</label>
+                        <textarea class="form-textarea" placeholder="문의 내용을 자세히 입력해주세요" required></textarea>
+                    </div>
+
+                    <button type="submit" class="form-submit">메시지 보내기</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="faq-section">
+            <h2>자주 묻는 질문</h2>
+            <p>문의하기 전에 자주 묻는 질문을 확인해보세요</p>
+
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <div class="faq-question">서비스 이용 요금은 어떻게 되나요?</div>
+                    <div class="faq-answer">
+                        기본 기능은 무료로 제공됩니다. AI 인사이트, 유전체 분석 등 고급 기능은 
+                        프리미엄 플랜에서 이용 가능합니다.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">데이터 보안은 어떻게 관리되나요?</div>
+                    <div class="faq-answer">
+                        모든 건강 데이터는 암호화되어 저장되며, HIPAA 및 GDPR 규정을 준수합니다. 
+                        사용자의 동의 없이는 절대 제3자와 공유되지 않습니다.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">웨어러블 기기와 연동이 가능한가요?</div>
+                    <div class="faq-answer">
+                        Apple Watch, Fitbit, Samsung Health 등 주요 웨어러블 기기와 
+                        연동이 가능합니다. 자동으로 건강 데이터를 동기화할 수 있습니다.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">환불 정책은 어떻게 되나요?</div>
+                    <div class="faq-answer">
+                        프리미엄 플랜 구독 후 7일 이내에는 전액 환불이 가능합니다. 
+                        자세한 환불 정책은 이용약관을 참고해주세요.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>KnowledgeHub</h3>
+                <p style="color: rgba(255,255,255,0.7); margin-top: 1rem;">
+                    AI 기반 개인 건강 관리의 새로운 표준
+                </p>
+            </div>
+            <div class="footer-section">
+                <h3>서비스</h3>
+                <ul class="footer-links">
+                    <li><a href="dashboard.html">대시보드</a></li>
+                    <li><a href="health-data-input.html">건강 데이터</a></li>
+                    <li><a href="genomics.html">유전체 분석</a></li>
+                    <li><a href="medications.html">복약 관리</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>회사</h3>
+                <ul class="footer-links">
+                    <li><a href="index.html#about">회사소개</a></li>
+                    <li><a href="index.html#team">팀</a></li>
+                    <li><a href="guide.html">가이드</a></li>
+                    <li><a href="contact.html">문의하기</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>법적 고지</h3>
+                <ul class="footer-links">
+                    <li><a href="#">이용약관</a></li>
+                    <li><a href="#">개인정보처리방침</a></li>
+                    <li><a href="#">의료정보 고지</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 KnowledgeHub. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        function handleSubmit(event) {
+            event.preventDefault();
+            alert('문의가 성공적으로 전송되었습니다!\n24시간 이내에 답변드리겠습니다.');
+            event.target.reset();
+        }
+    </script>
+</body>
+</html>
