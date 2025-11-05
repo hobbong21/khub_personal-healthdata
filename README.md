@@ -1,5 +1,9 @@
 # 개인 건강 플랫폼 (Personal Health Platform)
 
+[![CI](https://github.com/hobbong21/khub_personal-healthdata/workflows/CI%20-%20Test%20and%20Build/badge.svg)](https://github.com/hobbong21/khub_personal-healthdata/actions)
+[![CD Frontend](https://github.com/hobbong21/khub_personal-healthdata/workflows/CD%20-%20Deploy%20Frontend/badge.svg)](https://github.com/hobbong21/khub_personal-healthdata/actions)
+[![CD Backend](https://github.com/hobbong21/khub_personal-healthdata/workflows/CD%20-%20Deploy%20Backend/badge.svg)](https://github.com/hobbong21/khub_personal-healthdata/actions)
+
 개인의 건강 데이터를 체계적으로 수집, 저장, 분석하여 맞춤형 건강 관리 및 질병 예측 서비스를 제공하는 통합 플랫폼입니다.
 
 ## 🌟 주요 기능

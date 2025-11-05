@@ -1,0 +1,131 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  pr-info:
+    name: PR Information
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Get changed files
+      id: changed-files
+      uses: tj-actions/changed-files@v40
+      with:
+        files: |
+          frontend/**
+          backend/**
+    
+    - name: List changed files
+      run: |
+        echo "## Changed Files" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Frontend" >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | grep '^frontend/' || echo "No changes" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Backend" >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | grep '^backend/' || echo "No changes" >> $GITHUB_STEP_SUMMARY
+    
+    - name: Check PR size
+      run: |
+        ADDITIONS=$(git diff --shortstat origin/${{ github.base_ref }}...HEAD | grep -oP '\d+(?= insertion)')
+        DELETIONS=$(git diff --shortstat origin/${{ github.base_ref }}...HEAD | grep -oP '\d+(?= deletion)')
+        TOTAL=$((ADDITIONS + DELETIONS))
+        
+        echo "## PR Size" >> $GITHUB_STEP_SUMMARY
+        echo "- Additions: $ADDITIONS" >> $GITHUB_STEP_SUMMARY
+        echo "- Deletions: $DELETIONS" >> $GITHUB_STEP_SUMMARY
+        echo "- Total: $TOTAL" >> $GITHUB_STEP_SUMMARY
+        
+        if [ $TOTAL -gt 1000 ]; then
+          echo "::warning::This PR is quite large ($TOTAL lines). Consider breaking it into smaller PRs."
+        fi
+
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+    
+    - name: Check for console.log in frontend
+      run: |
+        if grep -r "console\.log" frontend/src --exclude-dir=node_modules --exclude-dir=dist; then
+          echo "::warning::Found console.log statements in frontend code"
+        fi
+    
+    - name: Check for TODO comments
+      run: |
+        TODO_COUNT=$(grep -r "TODO\|FIXME\|HACK" . --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=.git | wc -l)
+        echo "## Code Quality" >> $GITHUB_STEP_SUMMARY
+        echo "- TODO/FIXME/HACK comments: $TODO_COUNT" >> $GITHUB_STEP_SUMMARY
+    
+    - name: Check package.json versions
+      run: |
+        cd frontend
+        npm outdated || true
+        cd ../backend
+        npm outdated || true
+
+  preview-deployment:
+    name: Deploy Preview
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    
+    defaults:
+      run:
+        working-directory: ./frontend
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build project
+      run: npm run build
+      env:
+        VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+        VITE_APP_ENV: staging
+    
+    - name: Deploy preview to Vercel
+      uses: amondnet/vercel-action@v25
+      id: deploy-preview
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        working-directory: ./frontend
+        github-comment: true
+    
+    - name: Comment PR with preview URL
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `## 🚀 Preview Deployment\n\n✅ Preview deployed successfully!\n\n**Preview URL**: ${{ steps.deploy-preview.outputs.preview-url }}\n\n---\n*Deployed from commit: ${{ github.sha }}*`
+          })
