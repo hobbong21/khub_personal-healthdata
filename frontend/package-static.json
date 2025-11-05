@@ -1,8 +1,0 @@
-{
-  "name": "k-hub-static",
-  "version": "1.0.0",
-  "type": "commonjs",
-  "scripts": {
-    "start": "node static-server.js"
-  }
-}

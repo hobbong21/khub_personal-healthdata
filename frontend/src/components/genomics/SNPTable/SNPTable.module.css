@@ -1,0 +1,148 @@
+.snpSection {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.sectionTitle {
+  font-size: 1.5rem;
+  color: #1a202c;
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+}
+
+.tableContainer {
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+}
+
+.snpTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+.snpTable th {
+  background: #f7fafc;
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 2px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.snpTable th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+.snpTable th.sortable:hover {
+  background: #edf2f7;
+}
+
+.snpTable td {
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  color: #4a5568;
+}
+
+.snpTable tr:hover {
+  background: #f7fafc;
+}
+
+.genotype {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  color: #8b5cf6;
+  font-size: 1rem;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.pageButton {
+  padding: 0.5rem 1rem;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.pageButton:hover:not(:disabled) {
+  background: #f7fafc;
+  border-color: #cbd5e0;
+}
+
+.pageButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pageNumbers {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.pageNumber {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  min-width: 2.5rem;
+}
+
+.pageNumber:hover {
+  background: #f7fafc;
+  border-color: #cbd5e0;
+}
+
+.pageNumber.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+}
+
+.tableInfo {
+  text-align: center;
+  font-size: 0.875rem;
+  color: #718096;
+}
+
+@media (max-width: 768px) {
+  .snpSection {
+    padding: 1rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.25rem;
+  }
+
+  .snpTable th,
+  .snpTable td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .pageButton,
+  .pageNumber {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .pageNumber {
+    min-width: 2rem;
+  }
+}

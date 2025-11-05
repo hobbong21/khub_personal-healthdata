@@ -1,0 +1,94 @@
+.card {
+  background: white;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+/* Variants */
+.default {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.elevated {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+  border: none;
+}
+
+.outlined {
+  border: 2px solid #e5e7eb;
+  box-shadow: none;
+}
+
+/* Padding */
+.padding-none {
+  padding: 0;
+}
+
+.padding-small {
+  padding: 1rem;
+}
+
+.padding-medium {
+  padding: 1.5rem;
+}
+
+.padding-large {
+  padding: 2rem;
+}
+
+/* Hoverable */
+.hoverable {
+  cursor: pointer;
+}
+
+.hoverable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.06);
+}
+
+.hoverable:active {
+  transform: translateY(0);
+}
+
+/* Card sections */
+.cardHeader {
+  margin-bottom: 1rem;
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.cardContent {
+  color: #374151;
+  line-height: 1.6;
+}
+
+.cardFooter {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .padding-medium {
+    padding: 1.25rem;
+  }
+
+  .padding-large {
+    padding: 1.5rem;
+  }
+
+  .cardTitle {
+    font-size: 1.125rem;
+  }
+}

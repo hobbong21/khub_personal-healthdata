@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Alert, AlertDescription } from '../ui/alert';
-import { Loader2, Smartphone, CheckCircle, XCircle, Settings, Sync } from 'lucide-react';
+import { Loader2, Smartphone, CheckCircle, XCircle, Settings, RefreshCw } from 'lucide-react';
 import { googleFitApi, GoogleFitConnectionStatus, GoogleFitSyncResult } from '../../services/googleFitApi';
 
 

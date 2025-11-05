@@ -9,6 +9,7 @@ import {
   ProfileCompleteness 
 } from '../types/user';
 
+// API Base URL from environment variables (요구사항 7.5)
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
 class ApiService {
@@ -31,27 +32,43 @@ class ApiService {
     return headers;
   }
 
+  // Request interceptor with auth token and error handling (요구사항 7.1, 7.2)
   private async request<T>(
     endpoint: string, 
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${API_BASE_URL}${endpoint}`;
     
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        ...this.getHeaders(),
-        ...options.headers,
-      },
-    });
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          ...this.getHeaders(),
+          ...options.headers,
+        },
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.error?.message || `HTTP error! status: ${response.status}`);
+      // Handle unauthorized errors (401)
+      if (response.status === 401) {
+        this.clearToken();
+        window.location.href = '/login';
+        throw new Error('인증이 만료되었습니다. 다시 로그인해주세요.');
+      }
+
+      if (!response.ok) {
+        throw new Error(data.error?.message || `HTTP error! status: ${response.status}`);
+      }
+
+      return data;
+    } catch (error) {
+      // Enhanced error handling (요구사항 7.2)
+      if (error instanceof TypeError) {
+        throw new Error('네트워크 연결을 확인해주세요.');
+      }
+      throw error;
     }
-
-    return data;
   }
 
   // HTTP method helpers

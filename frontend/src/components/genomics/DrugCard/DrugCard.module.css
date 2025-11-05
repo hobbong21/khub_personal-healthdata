@@ -1,0 +1,64 @@
+.drugCard {
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  transition: all 0.2s;
+  background: white;
+}
+
+.drugCard:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+  transform: translateY(-2px);
+}
+
+.drugName {
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.drugResponse {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.drugResponse.normal {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.drugResponse.increased {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.drugResponse.decreased {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.drugDescription {
+  font-size: 0.875rem;
+  color: #718096;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .drugCard {
+    padding: 1rem;
+  }
+
+  .drugName {
+    font-size: 0.95rem;
+  }
+
+  .drugDescription {
+    font-size: 0.8rem;
+  }
+}

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>건강 데이터 입력 - 개인 건강 플랫폼</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header p {
+            color: #718096;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .tab:hover {
+            background: #f7fafc;
+        }
+
+        .tab.active {
+            background: #3b82f6;
+            color: white;
+        }
+
+        /* Form Card */
+        .form-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+
+        .form-card h2 {
+            font-size: 1.5rem;
+            color: #1a202c;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-help {
+            font-size: 0.875rem;
+            color: #718096;
+            margin-top: 0.25rem;
+        }
+
+        /* Button */
+        .btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        /* Scale Input */
+        .scale-input {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: space-between;
+        }
+
+        .scale-option {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .scale-option:hover {
+            border-color: #3b82f6;
+        }
+
+        .scale-option.selected {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        /* Recent Records */
+        .recent-records {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .recent-records h3 {
+            font-size: 1.25rem;
+            color: #1a202c;
+            margin-bottom: 1rem;
+        }
+
+        .record-item {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .record-item:last-child {
+            border-bottom: none;
+        }
+
+        .record-date {
+            font-size: 0.875rem;
+            color: #718096;
+        }
+
+        .record-value {
+            font-weight: 600;
+            color: #1a202c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>📊 건강 데이터 입력</h1>
+            <p>오늘의 건강 상태를 기록하세요</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" data-tab="vital-signs">바이탈 사인</div>
+            <div class="tab" data-tab="health-journal">건강 일지</div>
+            <div class="tab" data-tab="exercise">운동 기록</div>
+        </div>
+
+        <!-- Vital Signs Form -->
+        <div class="form-card" id="vital-signs-form">
+            <h2>❤️ 바이탈 사인</h2>
+            
+            <div class="form-group">
+                <label class="form-label">혈압 (mmHg)</label>
+                <div class="form-row">
+                    <input type="number" class="form-input" placeholder="수축기 (예: 120)" />
+                    <input type="number" class="form-input" placeholder="이완기 (예: 80)" />
+                </div>
+                <div class="form-help">정상 범위: 90-120 / 60-80</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">심박수 (bpm)</label>
+                <input type="number" class="form-input" placeholder="예: 72" />
+                <div class="form-help">정상 범위: 60-100</div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">체온 (°C)</label>
+                    <input type="number" step="0.1" class="form-input" placeholder="예: 36.5" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">혈당 (mg/dL)</label>
+                    <input type="number" class="form-input" placeholder="예: 95" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">체중 (kg)</label>
+                <input type="number" step="0.1" class="form-input" placeholder="예: 68.5" />
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-secondary">취소</button>
+                <button class="btn btn-primary">저장</button>
+            </div>
+        </div>
+
+        <!-- Health Journal Form (Hidden by default) -->
+        <div class="form-card" id="health-journal-form" style="display: none;">
+            <h2>📝 건강 일지</h2>
+            
+            <div class="form-group">
+                <label class="form-label">오늘의 컨디션</label>
+                <div class="scale-input">
+                    <div class="scale-option" data-value="1">😫<br>매우 나쁨</div>
+                    <div class="scale-option" data-value="2">😟<br>나쁨</div>
+                    <div class="scale-option" data-value="3">😐<br>보통</div>
+                    <div class="scale-option" data-value="4">🙂<br>좋음</div>
+                    <div class="scale-option" data-value="5">😄<br>매우 좋음</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">수면 시간</label>
+                <input type="number" step="0.5" class="form-input" placeholder="예: 7.5 시간" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">수면의 질</label>
+                <div class="scale-input">
+                    <div class="scale-option" data-value="1">1</div>
+                    <div class="scale-option" data-value="2">2</div>
+                    <div class="scale-option" data-value="3">3</div>
+                    <div class="scale-option" data-value="4">4</div>
+                    <div class="scale-option" data-value="5">5</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">증상 및 메모</label>
+                <textarea class="form-input" rows="4" placeholder="오늘의 건강 상태, 증상, 특이사항 등을 자유롭게 기록하세요"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-secondary">취소</button>
+                <button class="btn btn-primary">저장</button>
+            </div>
+        </div>
+
+        <!-- Exercise Form (Hidden by default) -->
+        <div class="form-card" id="exercise-form" style="display: none;">
+            <h2>🏃 운동 기록</h2>
+            
+            <div class="form-group">
+                <label class="form-label">운동 종류</label>
+                <select class="form-input">
+                    <option>선택하세요</option>
+                    <option>걷기</option>
+                    <option>달리기</option>
+                    <option>자전거</option>
+                    <option>수영</option>
+                    <option>요가</option>
+                    <option>웨이트 트레이닝</option>
+                    <option>기타</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">운동 시간 (분)</label>
+                    <input type="number" class="form-input" placeholder="예: 30" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">소모 칼로리 (kcal)</label>
+                    <input type="number" class="form-input" placeholder="예: 250" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">운동 강도</label>
+                <div class="scale-input">
+                    <div class="scale-option" data-value="low">낮음</div>
+                    <div class="scale-option" data-value="medium">보통</div>
+                    <div class="scale-option" data-value="high">높음</div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-secondary">취소</button>
+                <button class="btn btn-primary">저장</button>
+            </div>
+        </div>
+
+        <!-- Recent Records -->
+        <div class="recent-records">
+            <h3>📋 최근 기록</h3>
+            <div class="record-item">
+                <div>
+                    <div class="record-value">120/80 mmHg</div>
+                    <div class="record-date">2025-11-05 09:30</div>
+                </div>
+                <div>혈압</div>
+            </div>
+            <div class="record-item">
+                <div>
+                    <div class="record-value">72 bpm</div>
+                    <div class="record-date">2025-11-05 09:30</div>
+                </div>
+                <div>심박수</div>
+            </div>
+            <div class="record-item">
+                <div>
+                    <div class="record-value">68.5 kg</div>
+                    <div class="record-date">2025-11-05 07:00</div>
+                </div>
+                <div>체중</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Remove active class from all tabs
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                // Add active class to clicked tab
+                this.classList.add('active');
+                
+                // Hide all forms
+                document.querySelectorAll('.form-card').forEach(form => form.style.display = 'none');
+                
+                // Show selected form
+                const tabName = this.dataset.tab;
+                document.getElementById(tabName + '-form').style.display = 'block';
+            });
+        });
+
+        // Scale option selection
+        document.querySelectorAll('.scale-option').forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove selected class from siblings
+                this.parentElement.querySelectorAll('.scale-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                // Add selected class to clicked option
+                this.classList.add('selected');
+            });
+        });
+
+        // Form submission
+        document.querySelectorAll('.btn-primary').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                alert('데이터가 저장되었습니다!');
+            });
+        });
+    </script>
+</body>
+</html>

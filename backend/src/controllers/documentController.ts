@@ -53,8 +53,11 @@ export class DocumentController {
         return;
       }
 
+      // 파일명 경로 탐색 공격 방지
+      const sanitizedFileName = path.basename(req.body.fileName || file.originalname);
+      
       const documentData: DocumentUploadRequest = {
-        fileName: req.body.fileName || file.originalname,
+        fileName: sanitizedFileName,
         fileType: file.mimetype,
         category: req.body.category,
         metadata: req.body.metadata ? JSON.parse(req.body.metadata) : undefined
@@ -290,9 +293,7 @@ export class DocumentController {
         return;
       }
 
-      // 파일 다운로드 헤더 설정
-      res.setHeader('Content-Type', fileStream.mimeType);
-      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(fileStream.fileName)}"`);
+
 
       // 파일 스트림을 응답으로 파이프
       fileStream.stream.pipe(res);
@@ -327,9 +328,12 @@ export class DocumentController {
       const { category } = req.params;
       const { page = '1', limit = '20' } = req.query;
 
+      // 경로 탐색 공격 방지
+      const sanitizedCategory = decodeURIComponent(category).replace(/[\/\\]/g, '');
+      
       const result = await DocumentService.getDocuments(
         userId,
-        decodeURIComponent(category),
+        sanitizedCategory,
         parseInt(page as string),
         parseInt(limit as string)
       );

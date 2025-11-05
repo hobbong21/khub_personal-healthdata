@@ -5,9 +5,11 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "nodemon src/server.ts",
+    "dev:minimal": "nodemon src/server-minimal.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "jest",
+    "test:simple": "node test-server.js",
     "db:migrate": "npx prisma migrate dev",
     "db:generate": "npx prisma generate",
     "db:seed": "npx prisma db seed",

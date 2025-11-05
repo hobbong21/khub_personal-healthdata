@@ -1,0 +1,29 @@
+.layout-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+
+.layout-main {
+  flex: 1;
+  width: 100%;
+}
+
+/* Ensure proper spacing and layout flow */
+.layout-wrapper > nav {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.layout-wrapper > footer {
+  margin-top: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .layout-main {
+    padding: 0;
+  }
+}

@@ -1,0 +1,151 @@
+.statCard {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.statCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.statCard.clickable {
+  cursor: pointer;
+}
+
+.statCard.clickable:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+.statCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.statContent {
+  flex: 1;
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 0.25rem;
+  line-height: 1.2;
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.statUnit {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #718096;
+  margin-left: 0.25rem;
+}
+
+.statLabel {
+  color: #718096;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.statIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.iconEmoji {
+  font-size: 1.5rem;
+}
+
+.statIcon.blue {
+  background: #ebf4ff;
+  color: #3b82f6;
+}
+
+.statIcon.green {
+  background: #d1fae5;
+  color: #10b981;
+}
+
+.statIcon.red {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.statIcon.purple {
+  background: #ede9fe;
+  color: #8b5cf6;
+}
+
+.statIcon.yellow {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+
+.statIcon.default {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.statChange {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.statChange.positive {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.statChange.negative {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.changeIcon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.changeValue {
+  line-height: 1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .statCard {
+    padding: 1.25rem;
+  }
+
+  .statValue {
+    font-size: 1.5rem;
+  }
+
+  .statIcon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+  }
+
+  .iconEmoji {
+    font-size: 1.25rem;
+  }
+}

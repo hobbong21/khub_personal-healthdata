@@ -147,9 +147,11 @@ personal-health-platform/
 │   │   ├── services/       # API 서비스
 │   │   ├── types/          # TypeScript 타입 정의
 │   │   ├── hooks/          # 커스텀 React 훅
+│   │   ├── config/         # 설정 파일
 │   │   └── utils/          # 유틸리티 함수
+│   ├── html-prototypes/    # HTML 프로토타입 (참고용)
 │   ├── public/             # 정적 파일
-│   └── package.json
+│   └── README.md           # 프론트엔드 문서
 ├── backend/                 # Node.js 백엔드
 │   ├── src/
 │   │   ├── controllers/    # API 컨트롤러
@@ -160,18 +162,43 @@ personal-health-platform/
 │   │   └── utils/          # 유틸리티 함수
 │   ├── migrations/         # 데이터베이스 마이그레이션
 │   ├── seeds/              # 시드 데이터
-│   ├── scripts/            # 설정 스크립트
-│   └── package.json
-├── docs/                   # 문서
-│   └── ENVIRONMENT_SETUP.md
+│   └── scripts/            # 설정 스크립트
+├── docs/                   # 📚 통합 문서 (중앙화)
+│   ├── architecture/       # 시스템 아키텍처
+│   ├── api/               # API 문서
+│   ├── deployment/        # 배포 가이드
+│   ├── development/       # 개발 가이드
+│   ├── features/          # 기능 문서
+│   ├── PROJECT_STRUCTURE.md  # 프로젝트 구조 가이드
+│   └── README.md          # 문서 인덱스
+├── .kiro/                  # Kiro IDE 스펙
+│   └── specs/             # 기능 스펙
 ├── scripts/                # 프로젝트 설정 스크립트
-└── README.md
+└── README.md              # 프로젝트 개요
 ```
+
+자세한 프로젝트 구조는 [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md)를 참조하세요.
+
+## 📚 문서
+
+모든 프로젝트 문서는 `docs/` 디렉토리에 중앙화되어 있습니다:
+
+- **[문서 인덱스](docs/README.md)** - 전체 문서 목록
+- **[프로젝트 구조](docs/PROJECT_STRUCTURE.md)** - 코드베이스 구조 가이드
+- **[API 문서](docs/api/API_DOCUMENTATION.md)** - API 통합 가이드
+- **[배포 가이드](docs/deployment/DEPLOYMENT_SETUP_SUMMARY.md)** - 프로덕션 배포
+- **[개발 가이드](docs/development/)** - 개발 시작하기
+- **[시스템 아키텍처](docs/architecture/SYSTEM_ARCHITECTURE_ANALYSIS.md)** - 시스템 설계
+
+### 프론트엔드 문서
+- [프론트엔드 README](frontend/README.md)
+- [컴포넌트 가이드](frontend/src/components/common/README.md)
 
 ## 🔧 개발 가이드
 
 ### API 문서
-백엔드 서버 실행 후 http://localhost:5000/api-docs에서 Swagger API 문서를 확인할 수 있습니다.
+- Swagger UI: http://localhost:5000/api-docs (백엔드 실행 후)
+- [API 통합 가이드](docs/api/API_DOCUMENTATION.md)
 
 ### 테스트 실행
 ```bash
@@ -184,10 +211,13 @@ cd frontend
 npm test
 ```
 
+자세한 테스트 가이드는 [docs/development/TEST_SUMMARY.md](docs/development/TEST_SUMMARY.md)를 참조하세요.
+
 ### 코드 스타일
 - ESLint + Prettier 설정 적용
 - TypeScript strict 모드 사용
 - 컴포넌트는 함수형 컴포넌트 + Hooks 사용
+- Path aliases 사용 (`@components`, `@hooks`, etc.)
 
 ## 🔐 보안 고려사항
 

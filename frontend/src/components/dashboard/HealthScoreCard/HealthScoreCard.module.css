@@ -1,0 +1,144 @@
+.healthScoreCard {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.healthScoreCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.healthScoreCard.small {
+  padding: 1rem;
+}
+
+.healthScoreCard.medium {
+  padding: 1.5rem;
+}
+
+.healthScoreCard.large {
+  padding: 2rem;
+}
+
+.scoreLabel {
+  font-size: 1.125rem;
+  opacity: 0.9;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.small .scoreLabel {
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.medium .scoreLabel {
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.scoreRing {
+  position: relative;
+  display: inline-block;
+  margin: 1rem 0;
+}
+
+.progressRing {
+  transform: rotate(-90deg);
+}
+
+.progressCircle {
+  transition: stroke-dashoffset 0.5s ease-in-out;
+}
+
+.progressCircle.excellent {
+  stroke: #10b981;
+}
+
+.progressCircle.good {
+  stroke: #3b82f6;
+}
+
+.progressCircle.warning {
+  stroke: #f59e0b;
+}
+
+.progressCircle.danger {
+  stroke: #ef4444;
+}
+
+.scoreValue {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+}
+
+.scoreNumber {
+  font-size: 4rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.small .scoreNumber {
+  font-size: 2rem;
+}
+
+.medium .scoreNumber {
+  font-size: 3rem;
+}
+
+.scoreMax {
+  font-size: 1.5rem;
+  font-weight: 600;
+  opacity: 0.8;
+  margin-left: 0.25rem;
+}
+
+.small .scoreMax {
+  font-size: 0.875rem;
+}
+
+.medium .scoreMax {
+  font-size: 1.125rem;
+}
+
+.scoreStatus {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  opacity: 0.95;
+}
+
+.small .scoreStatus {
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.medium .scoreStatus {
+  font-size: 1rem;
+  margin-top: 0.75rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .healthScoreCard {
+    padding: 1.5rem;
+  }
+
+  .scoreNumber {
+    font-size: 3rem;
+  }
+
+  .scoreMax {
+    font-size: 1.125rem;
+  }
+}

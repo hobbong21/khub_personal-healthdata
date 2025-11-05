@@ -1,0 +1,181 @@
+.activityCard {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.activityTitle {
+  font-size: 1.25rem;
+  color: #1a202c;
+  margin: 0 0 1.5rem 0;
+  font-weight: 600;
+}
+
+.activityList {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 400px;
+}
+
+.activityItem {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  transition: background-color 0.2s;
+}
+
+.activityItem:last-child {
+  border-bottom: none;
+}
+
+.activityItem.clickable {
+  cursor: pointer;
+}
+
+.activityItem.clickable:hover {
+  background-color: #f9fafb;
+}
+
+.activityItem.clickable:focus {
+  outline: 2px solid #667eea;
+  outline-offset: -2px;
+  background-color: #f9fafb;
+}
+
+.activityIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.iconEmoji {
+  font-size: 1.25rem;
+}
+
+.activityIcon.blue {
+  background: #ebf4ff;
+  color: #3b82f6;
+}
+
+.activityIcon.green {
+  background: #d1fae5;
+  color: #10b981;
+}
+
+.activityIcon.red {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.activityIcon.purple {
+  background: #ede9fe;
+  color: #8b5cf6;
+}
+
+.activityIcon.yellow {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+
+.activityIcon.default {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.activityContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.activityItemTitle {
+  font-weight: 600;
+  color: #1a202c;
+  margin-bottom: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activityTime {
+  font-size: 0.875rem;
+  color: #718096;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #9ca3af;
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.activityFooter {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.viewMoreButton {
+  background: none;
+  border: none;
+  color: #667eea;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.viewMoreButton:hover {
+  background-color: #eff6ff;
+}
+
+.viewMoreButton:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .activityCard {
+    padding: 1rem;
+  }
+
+  .activityTitle {
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+  }
+
+  .activityItem {
+    padding: 0.75rem;
+  }
+
+  .activityIcon {
+    width: 36px;
+    height: 36px;
+    margin-right: 0.75rem;
+  }
+
+  .iconEmoji {
+    font-size: 1.125rem;
+  }
+
+  .activityList {
+    max-height: 300px;
+  }
+}

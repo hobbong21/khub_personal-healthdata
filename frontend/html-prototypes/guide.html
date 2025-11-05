@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사용 가이드 - KnowledgeHub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4F46E5;
+            --primary-dark: #4338CA;
+            --secondary: #06B6D4;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --dark: #1F2937;
+            --gray: #6B7280;
+            --light-gray: #F3F4F6;
+            --white: #FFFFFF;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--light-gray);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .back-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        /* Header */
+        .page-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .page-header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 1rem;
+        }
+
+        .page-header p {
+            font-size: 1.25rem;
+            color: var(--gray);
+        }
+
+        /* Grid Layout */
+        .guide-grid {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 3rem;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+        }
+
+        .sidebar-nav {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .sidebar-title {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-nav ul {
+            list-style: none;
+        }
+
+        .sidebar-nav li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-nav a {
+            display: block;
+            padding: 0.5rem 0.75rem;
+            color: var(--dark);
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .sidebar-nav a:hover {
+            background: var(--light-gray);
+            color: var(--primary);
+        }
+
+        .sidebar-nav a.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Content */
+        .content {
+            background: white;
+            border-radius: 12px;
+            padding: 3rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .section {
+            margin-bottom: 4rem;
+        }
+
+        .section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .section-subtitle {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin: 2rem 0 1rem;
+        }
+
+        .section p {
+            color: var(--gray);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        /* Steps */
+        .steps {
+            counter-reset: step;
+        }
+
+        .step {
+            position: relative;
+            padding-left: 4rem;
+            margin-bottom: 2rem;
+        }
+
+        .step::before {
+            content: counter(step);
+            counter-increment: step;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .step h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .step p {
+            color: var(--gray);
+        }
+
+        /* Feature List */
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: var(--light-gray);
+            border-radius: 12px;
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .feature-item h4 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .feature-item p {
+            font-size: 0.95rem;
+            color: var(--gray);
+            margin: 0;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: var(--dark);
+            color: #E5E7EB;
+            padding: 1.5rem;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+        }
+
+        /* Alert Box */
+        .alert {
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background: #EFF6FF;
+            border-color: var(--primary);
+            color: #1E40AF;
+        }
+
+        .alert-success {
+            background: #D1FAE5;
+            border-color: var(--success);
+            color: #065F46;
+        }
+
+        .alert-warning {
+            background: #FEF3C7;
+            border-color: var(--warning);
+            color: #92400E;
+        }
+
+        /* Button */
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .guide-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+            }
+
+            .feature-list {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">🏥</div>
+                <span>KnowledgeHub</span>
+            </a>
+            <a href="index.html" class="back-link">← 홈으로 돌아가기</a>
+        </div>
+    </nav>
+
+    <!-- Container -->
+    <div class="container">
+        <!-- Header -->
+        <div class="page-header">
+            <h1>📚 사용 가이드</h1>
+            <p>KnowledgeHub를 효과적으로 사용하는 방법을 알아보세요</p>
+        </div>
+
+        <!-- Grid Layout -->
+        <div class="guide-grid">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <nav class="sidebar-nav">
+                    <div class="sidebar-title">목차</div>
+                    <ul>
+                        <li><a href="#getting-started" class="active">시작하기</a></li>
+                        <li><a href="#features">주요 기능</a></li>
+                        <li><a href="#dashboard">대시보드 사용법</a></li>
+                        <li><a href="#health-data">건강 데이터 입력</a></li>
+                        <li><a href="#genomics">유전체 분석</a></li>
+                        <li><a href="#medications">복약 관리</a></li>
+                        <li><a href="#tips">유용한 팁</a></li>
+                        <li><a href="#faq">자주 묻는 질문</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+            <!-- Content -->
+            <main class="content">
+                <!-- Getting Started -->
+                <section class="section" id="getting-started">
+                    <h2 class="section-title">🚀 시작하기</h2>
+                    <p>
+                        KnowledgeHub는 AI 기반 개인 건강 관리 플랫폼입니다. 
+                        유전체 분석, 머신러닝, 웨어러블 연동을 통해 맞춤형 건강 인사이트를 제공합니다.
+                    </p>
+
+                    <div class="steps">
+                        <div class="step">
+                            <h3>계정 생성</h3>
+                            <p>이메일 또는 소셜 계정(Google, Apple)으로 간편하게 가입하세요.</p>
+                        </div>
+                        <div class="step">
+                            <h3>프로필 설정</h3>
+                            <p>기본 건강 정보(나이, 성별, 키, 몸무게)를 입력하여 개인화된 서비스를 받으세요.</p>
+                        </div>
+                        <div class="step">
+                            <h3>데이터 입력</h3>
+                            <p>바이탈 사인, 건강 일지, 운동 기록 등을 입력하여 건강 데이터를 축적하세요.</p>
+                        </div>
+                        <div class="step">
+                            <h3>인사이트 확인</h3>
+                            <p>AI가 분석한 건강 인사이트와 맞춤형 권장사항을 확인하세요.</p>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <strong>💡 팁:</strong> 정기적으로 데이터를 입력할수록 더 정확한 인사이트를 받을 수 있습니다.
+                    </div>
+                </section>
+
+                <!-- Features -->
+                <section class="section" id="features">
+                    <h2 class="section-title">✨ 주요 기능</h2>
+                    <p>KnowledgeHub가 제공하는 핵심 기능들을 살펴보세요.</p>
+
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <div class="feature-icon">📊</div>
+                            <div>
+                                <h4>통합 대시보드</h4>
+                                <p>건강 점수와 주요 지표를 한눈에 확인</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">📝</div>
+                            <div>
+                                <h4>건강 데이터 추적</h4>
+                                <p>바이탈 사인과 운동 기록 관리</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">🧬</div>
+                            <div>
+                                <h4>유전체 분석</h4>
+                                <p>질병 위험도와 약물 반응 예측</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">🏥</div>
+                            <div>
+                                <h4>진료 기록 관리</h4>
+                                <p>타임라인 기반 의료 기록 관리</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">💊</div>
+                            <div>
+                                <h4>스마트 복약 관리</h4>
+                                <p>복약 알림과 상호작용 경고</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">🤖</div>
+                            <div>
+                                <h4>AI 건강 인사이트</h4>
+                                <p>머신러닝 기반 건강 예측</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Dashboard -->
+                <section class="section" id="dashboard">
+                    <h2 class="section-title">📊 대시보드 사용법</h2>
+                    <p>대시보드는 건강 상태를 한눈에 파악할 수 있는 메인 화면입니다.</p>
+
+                    <h3 class="section-subtitle">주요 구성 요소</h3>
+                    <ul style="margin-left: 2rem; color: var(--gray);">
+                        <li><strong>건강 점수:</strong> 전반적인 건강 상태를 0-100점으로 표시</li>
+                        <li><strong>바이탈 사인 카드:</strong> 혈압, 심박수, 체중, 혈당 등 주요 지표</li>
+                        <li><strong>트렌드 차트:</strong> 시간에 따른 건강 지표 변화</li>
+                        <li><strong>빠른 액션:</strong> 자주 사용하는 기능에 빠르게 접근</li>
+                        <li><strong>최근 활동:</strong> 최근 입력한 데이터와 알림</li>
+                    </ul>
+
+                    <div class="alert alert-success">
+                        <strong>✓ 추천:</strong> 매일 아침 대시보드를 확인하여 건강 상태를 점검하세요.
+                    </div>
+                </section>
+
+                <!-- Health Data -->
+                <section class="section" id="health-data">
+                    <h2 class="section-title">📝 건강 데이터 입력</h2>
+                    <p>정확한 건강 데이터 입력이 AI 분석의 핵심입니다.</p>
+
+                    <h3 class="section-subtitle">바이탈 사인 입력</h3>
+                    <p>혈압, 심박수, 체온, 혈당, 체중 등을 정기적으로 입력하세요.</p>
+                    <ul style="margin-left: 2rem; color: var(--gray);">
+                        <li>측정 시간을 일정하게 유지 (예: 매일 아침 기상 후)</li>
+                        <li>측정 전 5분간 안정을 취한 후 측정</li>
+                        <li>특이사항이 있다면 메모 기능 활용</li>
+                    </ul>
+
+                    <h3 class="section-subtitle">건강 일지</h3>
+                    <p>일일 컨디션, 수면 시간, 증상 등을 기록하세요.</p>
+                    <ul style="margin-left: 2rem; color: var(--gray);">
+                        <li>5점 척도로 컨디션 평가</li>
+                        <li>수면 시간과 질 기록</li>
+                        <li>특별한 증상이나 불편함 메모</li>
+                    </ul>
+
+                    <h3 class="section-subtitle">운동 기록</h3>
+                    <p>운동 종류, 시간, 강도를 입력하여 활동량을 추적하세요.</p>
+                </section>
+
+                <!-- Genomics -->
+                <section class="section" id="genomics">
+                    <h2 class="section-title">🧬 유전체 분석</h2>
+                    <p>23andMe, Ancestry 등의 유전자 검사 결과를 업로드하여 분석받으세요.</p>
+
+                    <h3 class="section-subtitle">지원 파일 형식</h3>
+                    <div class="code-block">
+                        <code>
+                            - 23andMe: .txt, .csv<br>
+                            - Ancestry: .txt, .csv<br>
+                            - 기타: .vcf, .txt
+                        </code>
+                    </div>
+
+                    <h3 class="section-subtitle">분석 항목</h3>
+                    <ul style="margin-left: 2rem; color: var(--gray);">
+                        <li><strong>질병 위험도:</strong> 심혈관 질환, 당뇨병, 암 등</li>
+                        <li><strong>약물 반응:</strong> 약물유전체학 기반 예측</li>
+                        <li><strong>유전적 특성:</strong> 영양소 대사, 운동 반응 등</li>
+                    </ul>
+
+                    <div class="alert alert-warning">
+                        <strong>⚠️ 주의:</strong> 유전체 분석 결과는 참고용이며, 의료 진단을 대체하지 않습니다.
+                    </div>
+                </section>
+
+                <!-- Medications -->
+                <section class="section" id="medications">
+                    <h2 class="section-title">💊 복약 관리</h2>
+                    <p>복약 일정을 관리하고 약물 상호작용을 확인하세요.</p>
+
+                    <h3 class="section-subtitle">복약 등록</h3>
+                    <ol style="margin-left: 2rem; color: var(--gray);">
+                        <li>약물 이름과 용량 입력</li>
+                        <li>복용 시간 설정 (아침/점심/저녁)</li>
+                        <li>복용 기간 설정</li>
+                        <li>알림 설정</li>
+                    </ol>
+
+                    <h3 class="section-subtitle">알림 기능</h3>
+                    <ul style="margin-left: 2rem; color: var(--gray);">
+                        <li>브라우저 푸시 알림</li>
+                        <li>이메일 알림 (선택)</li>
+                        <li>SMS 알림 (선택)</li>
+                    </ul>
+
+                    <div class="alert alert-info">
+                        <strong>💡 팁:</strong> 약물 상호작용 경고가 표시되면 반드시 의사와 상담하세요.
+                    </div>
+                </section>
+
+                <!-- Tips -->
+                <section class="section" id="tips">
+                    <h2 class="section-title">💡 유용한 팁</h2>
+                    
+                    <h3 class="section-subtitle">데이터 정확도 향상</h3>
+                    <ul style="margin-left: 2rem; color: var(--gray);">
+                        <li>매일 같은 시간에 측정하기</li>
+                        <li>측정 전 안정 상태 유지</li>
+                        <li>특이사항은 메모로 기록</li>
+                        <li>웨어러블 기기 연동 활용</li>
+                    </ul>
+
+                    <h3 class="section-subtitle">AI 인사이트 활용</h3>
+                    <ul style="margin-left: 2rem; color: var(--gray);">
+                        <li>주간 리포트 정기적으로 확인</li>
+                        <li>권장사항 실천하기</li>
+                        <li>트렌드 변화 주시</li>
+                        <li>이상 징후 조기 발견</li>
+                    </ul>
+
+                    <h3 class="section-subtitle">의료진과 공유</h3>
+                    <ul style="margin-left: 2rem; color: var(--gray);">
+                        <li>진료 전 데이터 리포트 생성</li>
+                        <li>안전한 링크로 공유</li>
+                        <li>권한 설정 관리</li>
+                    </ul>
+                </section>
+
+                <!-- FAQ -->
+                <section class="section" id="faq">
+                    <h2 class="section-title">❓ 자주 묻는 질문</h2>
+                    
+                    <h3 class="section-subtitle">Q. 데이터는 안전한가요?</h3>
+                    <p>네, AES-256 암호화와 HIPAA/GDPR 준수로 최고 수준의 보안을 제공합니다.</p>
+
+                    <h3 class="section-subtitle">Q. 웨어러블 기기와 연동되나요?</h3>
+                    <p>Apple Health, Google Fit, Fitbit 등 주요 웨어러블 기기와 연동됩니다.</p>
+
+                    <h3 class="section-subtitle">Q. 무료인가요?</h3>
+                    <p>기본 기능은 무료이며, AI 인사이트와 유전체 분석은 프리미엄 플랜에서 제공됩니다.</p>
+
+                    <h3 class="section-subtitle">Q. 모바일 앱이 있나요?</h3>
+                    <p>현재 웹 버전을 제공하며, iOS/Android 앱은 2025년 하반기 출시 예정입니다.</p>
+
+                    <div style="margin-top: 3rem; text-align: center;">
+                        <a href="index.html#contact" class="btn">더 궁금한 점이 있으신가요? 문의하기 →</a>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Smooth scroll for sidebar links
+        document.querySelectorAll('.sidebar-nav a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Remove active class from all links
+                document.querySelectorAll('.sidebar-nav a').forEach(l => l.classList.remove('active'));
+                
+                // Add active class to clicked link
+                this.classList.add('active');
+                
+                // Scroll to section
+                const targetId = this.getAttribute('href');
+                const targetSection = document.querySelector(targetId);
+                if (targetSection) {
+                    targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Update active link on scroll
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('.section');
+            const scrollPos = window.scrollY + 150;
+
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.offsetHeight;
+                const sectionId = section.getAttribute('id');
+
+                if (scrollPos >= sectionTop && scrollPos < sectionTop + sectionHeight) {
+                    document.querySelectorAll('.sidebar-nav a').forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href') === `#${sectionId}`) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -22,7 +22,10 @@ redis.on('connect', () => {
 const generateCacheKey = (req: Request): string => {
   const { method, originalUrl, query, user } = req;
   const userId = (user as any)?.id || 'anonymous';
-  return `${method}:${originalUrl}:${JSON.stringify(query)}:user:${userId}`;
+  // 안전한 문자열 생성 (로그 인젝션 방지)
+  const sanitizedUrl = originalUrl.replace(/[\r\n]/g, '');
+  const sanitizedQuery = JSON.stringify(query).replace(/[\r\n]/g, '');
+  return `${method}:${sanitizedUrl}:${sanitizedQuery}:user:${userId}`;
 };
 
 // 캐시 미들웨어
@@ -40,7 +43,8 @@ export const cacheMiddleware = (ttl: number = 300) => {
       const cachedData = await redis.get(cacheKey);
       
       if (cachedData) {
-        console.log(`📦 캐시 히트: ${cacheKey}`);
+        const sanitizedKey = cacheKey.replace(/[\r\n]/g, '');
+        console.log(`📦 캐시 히트: ${sanitizedKey}`);
         return res.json(JSON.parse(cachedData));
       }
 
@@ -51,7 +55,8 @@ export const cacheMiddleware = (ttl: number = 300) => {
         if (res.statusCode === 200) {
           redis.setex(cacheKey, ttl, JSON.stringify(data))
             .catch(err => console.error('캐시 저장 오류:', err));
-          console.log(`💾 캐시 저장: ${cacheKey}`);
+          const sanitizedKey = cacheKey.replace(/[\r\n]/g, '');
+          console.log(`💾 캐시 저장: ${sanitizedKey}`);
         }
         
         return originalSend.call(this, data);

@@ -36,7 +36,10 @@ class GenomicsApiService {
     return data;
   }
 
-  // Upload genomic data
+  /**
+   * Upload genomic data file
+   * Requirements: 7.1, 7.2, 3.3
+   */
   async uploadGenomicData(file: File, sourcePlatform: string): Promise<GenomicUploadResult> {
     const formData = new FormData();
     formData.append('genomicFile', file);
@@ -86,7 +89,10 @@ class GenomicsApiService {
     return response.data;
   }
 
-  // Get pharmacogenomics analysis
+  /**
+   * Get pharmacogenomics analysis
+   * Requirements: 7.1, 7.2, 3.3
+   */
   async getPharmacogenomics(): Promise<PharmacogenomicsData> {
     const response = await this.request<PharmacogenomicsData>('/genomics/analysis/pharmacogenomics');
     return response.data;
@@ -104,7 +110,10 @@ class GenomicsApiService {
     return response.data;
   }
 
-  // Get risk assessments
+  /**
+   * Get risk assessments
+   * Requirements: 7.1, 7.2, 3.3
+   */
   async getRiskAssessments(): Promise<RiskAssessment[]> {
     const response = await this.request<RiskAssessment[]>('/genomics/risk-assessments/all');
     return response.data;

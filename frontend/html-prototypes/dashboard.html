@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대시보드 - 개인 건강 플랫폼</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            margin-bottom: 0;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: #667eea;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .nav-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1rem;
+            color: #4b5563;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background: #f3f4f6;
+            color: #667eea;
+        }
+
+        .nav-link.active {
+            background: #eff6ff;
+            color: #667eea;
+        }
+
+        .nav-icon {
+            font-size: 1.125rem;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .nav-btn {
+            padding: 0.625rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .nav-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-btn-outline {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .nav-btn-outline:hover {
+            background: #eff6ff;
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #4b5563;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            border-radius: 12px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 0.95rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+
+        .stat-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stat-icon.blue { background: #ebf4ff; color: #3b82f6; }
+        .stat-icon.green { background: #d1fae5; color: #10b981; }
+        .stat-icon.red { background: #fee2e2; color: #ef4444; }
+        .stat-icon.purple { background: #ede9fe; color: #8b5cf6; }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 0.875rem;
+        }
+
+        .stat-change {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+        }
+
+        .stat-change.positive {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .stat-change.negative {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        /* Main Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Chart Card */
+        .chart-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .chart-card h3 {
+            font-size: 1.25rem;
+            color: #1a202c;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .chart-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .chart-tab {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #718096;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chart-tab:hover {
+            color: #667eea;
+        }
+
+        .chart-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        /* Activity List */
+        .activity-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .activity-card h3 {
+            font-size: 1.25rem;
+            color: #1a202c;
+            margin-bottom: 1.5rem;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-time {
+            font-size: 0.875rem;
+            color: #718096;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .action-button {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .action-button:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+        }
+
+        .action-button-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .action-button-text {
+            font-weight: 600;
+            color: #1a202c;
+        }
+
+        /* Health Score */
+        .health-score-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .health-score-value {
+            font-size: 4rem;
+            font-weight: 700;
+            margin: 1rem 0;
+        }
+
+        .health-score-label {
+            font-size: 1.125rem;
+            opacity: 0.9;
+        }
+
+        .health-score-ring {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+            border-radius: 50%;
+            border: 12px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <div class="nav-logo-icon">🏥</div>
+                <span>KnowledgeHub</span>
+            </a>
+
+            <ul class="nav-menu" id="navMenu">
+                <li class="nav-item">
+                    <a href="dashboard.html" class="nav-link active">
+                        <span class="nav-icon">📊</span>
+                        <span>대시보드</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="health-data-input.html" class="nav-link">
+                        <span class="nav-icon">📝</span>
+                        <span>건강 데이터</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="medical-records.html" class="nav-link">
+                        <span class="nav-icon">🏥</span>
+                        <span>진료 기록</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="medications.html" class="nav-link">
+                        <span class="nav-icon">💊</span>
+                        <span>복약 관리</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="genomics.html" class="nav-link">
+                        <span class="nav-icon">🧬</span>
+                        <span>유전체 분석</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="nav-actions">
+                <a href="guide.html" class="nav-btn nav-btn-outline">
+                    <span>📚</span>
+                    <span>가이드</span>
+                </a>
+                <a href="index.html" class="nav-btn nav-btn-primary">
+                    <span>🏠</span>
+                    <span>홈</span>
+                </a>
+            </div>
+
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                ☰
+            </button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>👋 안녕하세요, 홍길동님</h1>
+            <p>오늘도 건강한 하루 되세요!</p>
+        </div>
+
+        <!-- Health Score -->
+        <div class="health-score-card">
+            <div class="health-score-label">전체 건강 점수</div>
+            <div class="health-score-ring">
+                <div class="health-score-value">85</div>
+            </div>
+            <div class="health-score-label">양호</div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div>
+                        <div class="stat-value">120/80</div>
+                        <div class="stat-label">혈압 (mmHg)</div>
+                    </div>
+                    <div class="stat-icon blue">❤️</div>
+                </div>
+                <div class="stat-change positive">↑ 정상 범위</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div>
+                        <div class="stat-value">72</div>
+                        <div class="stat-label">심박수 (bpm)</div>
+                    </div>
+                    <div class="stat-icon green">💓</div>
+                </div>
+                <div class="stat-change positive">↑ 안정적</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div>
+                        <div class="stat-value">68.5</div>
+                        <div class="stat-label">체중 (kg)</div>
+                    </div>
+                    <div class="stat-icon purple">⚖️</div>
+                </div>
+                <div class="stat-change negative">↓ -0.5kg</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div>
+                        <div class="stat-value">95</div>
+                        <div class="stat-label">혈당 (mg/dL)</div>
+                    </div>
+                    <div class="stat-icon red">🩸</div>
+                </div>
+                <div class="stat-change positive">↑ 정상</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <div class="action-button">
+                <div class="action-button-icon">📝</div>
+                <div class="action-button-text">건강 일지 작성</div>
+            </div>
+            <div class="action-button">
+                <div class="action-button-icon">💊</div>
+                <div class="action-button-text">복약 기록</div>
+            </div>
+            <div class="action-button">
+                <div class="action-button-icon">🏥</div>
+                <div class="action-button-text">병원 예약</div>
+            </div>
+            <div class="action-button">
+                <div class="action-button-icon">📊</div>
+                <div class="action-button-text">검사 결과 보기</div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="content-grid">
+            <!-- Chart -->
+            <div class="chart-card">
+                <h3>📈 건강 트렌드 (최근 7일)</h3>
+                <div class="chart-placeholder">
+                    차트 영역 (Recharts 또는 Chart.js)
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="activity-card">
+                <h3>🕐 최근 활동</h3>
+                <div class="activity-item">
+                    <div class="activity-icon blue">💊</div>
+                    <div class="activity-content">
+                        <div class="activity-title">아침 약 복용 완료</div>
+                        <div class="activity-time">2시간 전</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon green">🏃</div>
+                    <div class="activity-content">
+                        <div class="activity-title">운동 30분 완료</div>
+                        <div class="activity-time">5시간 전</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon purple">📝</div>
+                    <div class="activity-content">
+                        <div class="activity-title">건강 일지 작성</div>
+                        <div class="activity-time">어제</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon red">🏥</div>
+                    <div class="activity-content">
+                        <div class="activity-title">병원 예약 확인</div>
+                        <div class="activity-time">2일 전</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Charts -->
+        <div class="content-grid">
+            <div class="chart-card">
+                <h3>💪 운동 기록</h3>
+                <div class="chart-placeholder">
+                    운동 시간 및 칼로리 차트
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3>😴 수면 패턴</h3>
+                <div class="chart-placeholder">
+                    수면 시간 및 질 차트
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 인터랙션 예시
+        document.querySelectorAll('.action-button').forEach(button => {
+            button.addEventListener('click', function() {
+                alert('기능: ' + this.querySelector('.action-button-text').textContent);
+            });
+        });
+
+        document.querySelectorAll('.stat-card').forEach(card => {
+            card.addEventListener('click', function() {
+                console.log('상세 정보 보기');
+            });
+        });
+    </script>
+</body>
+</html>
+
+<script>
+    // Mobile menu toggle
+    document.getElementById('mobileMenuToggle')?.addEventListener('click', function() {
+        document.getElementById('navMenu')?.classList.toggle('active');
+    });
+</script>

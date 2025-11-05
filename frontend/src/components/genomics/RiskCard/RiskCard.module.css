@@ -1,0 +1,141 @@
+.riskCard {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.riskCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+}
+
+.riskCard.low::before {
+  background: #10b981;
+}
+
+.riskCard.medium::before {
+  background: #f59e0b;
+}
+
+.riskCard.high::before {
+  background: #ef4444;
+}
+
+.riskCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+.riskCard:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+.riskTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 1rem;
+}
+
+.riskScore {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.riskScore.low {
+  color: #10b981;
+}
+
+.riskScore.medium {
+  color: #f59e0b;
+}
+
+.riskScore.high {
+  color: #ef4444;
+}
+
+.riskPercentile {
+  font-size: 0.875rem;
+  color: #718096;
+  margin-bottom: 1rem;
+}
+
+.riskFactors {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.factorItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.factorItem:last-child {
+  margin-bottom: 0;
+}
+
+.factorLabel {
+  font-size: 0.875rem;
+  color: #718096;
+  min-width: 80px;
+}
+
+.factorBar {
+  flex: 1;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  margin: 0 1rem;
+  overflow: hidden;
+}
+
+.factorFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.factorValue {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1a202c;
+  min-width: 40px;
+  text-align: right;
+}
+
+@media (max-width: 768px) {
+  .riskCard {
+    padding: 1.5rem;
+  }
+
+  .riskTitle {
+    font-size: 1.125rem;
+  }
+
+  .riskScore {
+    font-size: 2.5rem;
+  }
+
+  .factorLabel {
+    font-size: 0.8rem;
+    min-width: 70px;
+  }
+
+  .factorBar {
+    margin: 0 0.5rem;
+  }
+}

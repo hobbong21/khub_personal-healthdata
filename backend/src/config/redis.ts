@@ -17,14 +17,19 @@ class RedisService {
 
   async connect(): Promise<void> {
     try {
+      const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+      // URL 검증
+      if (!redisUrl.startsWith('redis://') && !redisUrl.startsWith('rediss://')) {
+        throw new Error('Invalid Redis URL format');
+      }
+      
       this.client = createClient({
-        url: process.env.REDIS_URL || 'redis://localhost:6379',
+        url: redisUrl,
         socket: {
           connectTimeout: 10000,
           keepAlive: 30000,
           noDelay: true,
         },
-        // 성능 최적화 설정
         commandsQueueMaxLength: 1000,
         disableOfflineQueue: false,
       });

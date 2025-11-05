@@ -1,0 +1,137 @@
+.chartCard {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.chartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.chartTitle {
+  font-size: 1.25rem;
+  color: #1a202c;
+  font-weight: 600;
+  margin: 0;
+}
+
+.chartTabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.chartTab {
+  padding: 0.75rem 1.5rem;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #718096;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  position: relative;
+  bottom: -2px;
+}
+
+.chartTab:hover {
+  color: #667eea;
+  background: #f9fafb;
+}
+
+.chartTab.active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+}
+
+.chartTab:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+.chartContainer {
+  position: relative;
+  height: 300px;
+  margin-bottom: 1rem;
+}
+
+.chartLegend {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.legendColor {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legendLabel {
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .chartCard {
+    padding: 1rem;
+  }
+
+  .chartHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .chartTabs {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .chartTab {
+    flex: 1;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .chartContainer {
+    height: 250px;
+  }
+
+  .chartLegend {
+    gap: 1rem;
+  }
+
+  .legendItem {
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .chartContainer {
+    height: 200px;
+  }
+
+  .chartTab {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+}

@@ -1,0 +1,76 @@
+.resultsHeader {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 3rem 2rem;
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 3rem;
+}
+
+.headerContent {
+  flex: 1;
+}
+
+.headerContent h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.analysisMeta {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1.5rem;
+  font-size: 0.95rem;
+  opacity: 0.95;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.healthScoreCircle {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 6px solid rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.scoreNumber {
+  font-size: 3.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.scoreLabel {
+  font-size: 0.875rem;
+  opacity: 0.9;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .resultsHeader {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .headerContent h1 {
+    font-size: 2rem;
+  }
+
+  .analysisMeta {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
