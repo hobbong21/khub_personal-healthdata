@@ -1,11 +1,11 @@
 import React from 'react';
-import HealthInsightsDashboard from '../components/ai/HealthInsightsDashboard';
+import AIInsightsDashboard from '../components/ai/AIInsightsDashboard';
 import './AIInsightsPage.css';
 
 const AIInsightsPage: React.FC = () => {
   return (
     <div className="ai-insights-page">
-      <HealthInsightsDashboard />
+      <AIInsightsDashboard />
     </div>
   );
 };

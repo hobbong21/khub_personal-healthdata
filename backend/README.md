@@ -107,6 +107,15 @@ JWT 기반 인증을 사용합니다:
 - `GET /appointments` - 예약 조회
 - `POST /appointments` - 예약 등록
 
+### AI Insights (`/api/ai-insights`)
+- `GET /` - 전체 AI 인사이트 조회
+- `GET /summary` - AI 건강 요약 조회
+- `GET /trends?period=30` - 건강 트렌드 분석
+- `GET /health-score` - 건강 점수 조회
+- `POST /refresh` - 인사이트 새로고침
+
+자세한 API 문서는 [AI Insights API 문서](./docs/AI_INSIGHTS_API.md)를 참조하세요.
+
 ## 🔒 보안
 
 - **Helmet** - 보안 헤더 설정
@@ -127,6 +136,36 @@ JWT 기반 인증을 사용합니다:
 # 테스트 실행
 npm test
 
+# AI Insights 테스트만 실행
+npm test -- aiInsights
+
+# 통합 테스트
+npm run test:integration
+
 # 테스트 커버리지
 npm run test:coverage
 ```
+
+## 🤖 AI Insights Module
+
+AI 기반 건강 인사이트 생성 모듈이 통합되어 있습니다.
+
+### 주요 기능
+- **AI 건강 요약**: 최근 7일간의 건강 데이터를 분석하여 자연어 요약 생성
+- **인사이트 카드**: 건강 상태에 대한 분류된 인사이트 (positive, warning, alert, info)
+- **건강 점수**: 0-100 범위의 종합 건강 점수 계산
+- **트렌드 분석**: 시간에 따른 건강 지표 변화 추적
+- **맞춤형 추천**: 개인화된 건강 개선 권장사항
+
+### 환경 변수
+
+```bash
+# AI Insights 설정
+AI_INSIGHTS_CACHE_TTL=3600              # 캐시 유효 시간 (초)
+AI_INSIGHTS_MIN_DATA_POINTS=3           # 최소 데이터 포인트
+```
+
+### 문서
+- [AI Insights API 문서](./docs/AI_INSIGHTS_API.md)
+- [배포 가이드](./docs/AI_INSIGHTS_DEPLOYMENT.md)
+- [성능 최적화 가이드](./docs/AI_INSIGHTS_PERFORMANCE_GUIDE.md)

@@ -17,6 +17,11 @@
 - **대시보드**: 건강 지표 요약, 트렌드 분석, 목표 달성률
 
 ### 고급 기능
+- **AI Insights Module**: 건강 데이터 분석 및 맞춤형 인사이트 생성
+  - AI 건강 요약 및 자연어 분석
+  - 종합 건강 점수 계산 (0-100)
+  - 시계열 트렌드 분석 및 시각화
+  - 개인화된 건강 개선 추천
 - **유전체 분석**: 23andMe, Ancestry 데이터 연동 및 질병 위험도 분석
 - **약물유전체학**: 유전적 변이에 따른 약물 반응 예측
 - **AI 건강 예측**: 머신러닝 기반 질병 발생 확률 및 건강 위험 요인 분석
@@ -95,6 +100,10 @@ JWT_EXPIRES_IN=7d
 
 # Redis
 REDIS_URL=redis://localhost:6379
+
+# AI Insights 설정
+AI_INSIGHTS_CACHE_TTL=3600              # 캐시 유효 시간 (초), 기본값: 3600 (1시간)
+AI_INSIGHTS_MIN_DATA_POINTS=3           # 분석에 필요한 최소 데이터 포인트
 
 # 외부 서비스 API 키들
 GOOGLE_VISION_API_KEY=your-google-vision-api-key
