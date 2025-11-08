@@ -18,7 +18,6 @@ AI 기반 건강 인사이트 생성 모듈의 완전한 문서 세트
 
 ### 참조 문서
 - **[기능 요약](./AI_INSIGHTS_FEATURE_SUMMARY.md)** - 전체 기능 및 아키텍처 📋
-- **[문서화 완료 보고서](./DOCUMENTATION_COMPLETE.md)** - 문서 작업 완료 보고 ✅
 
 ---
 
@@ -63,8 +62,8 @@ AI 기반 건강 인사이트 생성 모듈의 완전한 문서 세트
 
 ### 프로젝트 문서
 - [프로젝트 README](../../README.md)
-- [백엔드 README](../README.md)
-- [전체 문서 인덱스](../../docs/README.md)
+- [백엔드 README](../../backend/README.md)
+- [전체 문서 인덱스](../README.md)
 
 ### 스펙 문서
 - [요구사항](../../.kiro/specs/ai-insights-module/requirements.md)

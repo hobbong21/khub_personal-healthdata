@@ -29,12 +29,16 @@ Feature-specific implementation documentation
 - [Dashboard Enhancements](./features/dashboard-enhancements.md)
 - [Genomics Results Page](./features/genomics-results-page.md)
 - [Navigation Implementation](./features/navigation-implementation.md)
-- [AI Insights Module](../backend/docs/AI_INSIGHTS_README.md) ⭐ NEW
-  - [Quick Start Guide](../backend/docs/AI_INSIGHTS_QUICKSTART.md)
-  - [API Documentation](../backend/docs/AI_INSIGHTS_API.md)
-  - [Deployment Guide](../backend/docs/AI_INSIGHTS_DEPLOYMENT.md)
-  - [Performance Guide](../backend/docs/AI_INSIGHTS_PERFORMANCE_GUIDE.md)
-  - [Environment Variables](../backend/docs/ENVIRONMENT_VARIABLES.md)
+
+### [AI Insights Module](./ai-insights/) ⭐ NEW
+Complete AI-powered health insights documentation
+- [Documentation Index](./ai-insights/INDEX.md) - Start here
+- [Quick Start Guide](./ai-insights/AI_INSIGHTS_QUICKSTART.md)
+- [API Documentation](./ai-insights/AI_INSIGHTS_API.md)
+- [Deployment Guide](./ai-insights/AI_INSIGHTS_DEPLOYMENT.md)
+- [Performance Guide](./ai-insights/AI_INSIGHTS_PERFORMANCE_GUIDE.md)
+- [Environment Variables](./ai-insights/ENVIRONMENT_VARIABLES.md)
+- [Feature Summary](./ai-insights/AI_INSIGHTS_FEATURE_SUMMARY.md)
 
 ## 🔍 Quick Links
 
@@ -42,13 +46,15 @@ Feature-specific implementation documentation
 - [Project Structure](./PROJECT_STRUCTURE.md) - Understanding the codebase organization
 - [Development Guide](./development/) - Getting started with development
 - [API Documentation](./api/API_DOCUMENTATION.md) - API integration guide
-- [AI Insights API](../backend/docs/AI_INSIGHTS_API.md) - AI Insights endpoints ⭐
+- [AI Insights API](./ai-insights/AI_INSIGHTS_API.md) - AI Insights endpoints ⭐
+- [AI Insights Quick Start](./ai-insights/AI_INSIGHTS_QUICKSTART.md) - Get started in 5 minutes
 - [Component Guide](../frontend/src/components/common/README.md) - Component usage
 
 ### For DevOps
 - [Deployment Guide](./deployment/DEPLOYMENT_SETUP_SUMMARY.md) - Production deployment
-- [AI Insights Deployment](../backend/docs/AI_INSIGHTS_DEPLOYMENT.md) - AI module deployment ⭐
-- [Environment Variables](../backend/docs/ENVIRONMENT_VARIABLES.md) - Configuration reference
+- [AI Insights Deployment](./ai-insights/AI_INSIGHTS_DEPLOYMENT.md) - AI module deployment ⭐
+- [Environment Variables](./ai-insights/ENVIRONMENT_VARIABLES.md) - Configuration reference
+- [AI Performance Guide](./ai-insights/AI_INSIGHTS_PERFORMANCE_GUIDE.md) - Performance tuning
 - [Build Optimization](./deployment/BUILD_OPTIMIZATION.md) - Performance optimization
 - [Architecture](./architecture/SYSTEM_ARCHITECTURE_ANALYSIS.md) - System overview
 
@@ -113,4 +119,4 @@ All documentation has been reorganized from root-level files into this structure
 
 ---
 
-Last Updated: 2024-11-05
+Last Updated: 2024-11-08

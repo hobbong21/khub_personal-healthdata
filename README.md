@@ -203,6 +203,13 @@ personal-health-platform/
 - **[개발 가이드](docs/development/)** - 개발 시작하기
 - **[시스템 아키텍처](docs/architecture/SYSTEM_ARCHITECTURE_ANALYSIS.md)** - 시스템 설계
 
+### AI Insights 문서 ⭐
+- **[AI Insights 문서 인덱스](docs/ai-insights/INDEX.md)** - 시작점
+- **[빠른 시작 가이드](docs/ai-insights/AI_INSIGHTS_QUICKSTART.md)** - 5분 안에 시작하기
+- **[AI Insights API](docs/ai-insights/AI_INSIGHTS_API.md)** - API 참조
+- **[배포 가이드](docs/ai-insights/AI_INSIGHTS_DEPLOYMENT.md)** - 프로덕션 배포
+- **[성능 최적화](docs/ai-insights/AI_INSIGHTS_PERFORMANCE_GUIDE.md)** - 성능 튜닝
+
 ### 프론트엔드 문서
 - [프론트엔드 README](frontend/README.md)
 - [컴포넌트 가이드](frontend/src/components/common/README.md)
