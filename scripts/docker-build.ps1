@@ -1,86 +1,155 @@
-# Docker Build Script for Health Platform (PowerShell)
+# Docker Build Script for Personal Health Platform (PowerShell)
+# This script builds Docker images for backend and frontend services
+
 param(
-    [Parameter(Mandatory=$false)]
     [string]$Version = "latest",
-    
-    [Parameter(Mandatory=$false)]
-    [ValidateSet("development", "staging", "production")]
-    [string]$Environment = "development"
+    [string]$Service = "all",
+    [string]$Registry = $env:DOCKER_REGISTRY
 )
 
 # Configuration
-$ProjectName = "health-platform"
+$BackendImage = "health-platform-backend"
+$FrontendImage = "health-platform-frontend"
 
-Write-Host "🐳 Building Docker images for Health Platform" -ForegroundColor Green
-Write-Host "Version: $Version" -ForegroundColor Yellow
-Write-Host "Environment: $Environment" -ForegroundColor Yellow
+# Colors
+$Green = "Green"
+$Yellow = "Yellow"
+$Red = "Red"
 
-# Function to build image
-function Build-Image {
-    param(
-        [string]$Service,
-        [string]$Dockerfile,
-        [string]$Context
-    )
-    
-    Write-Host ""
-    Write-Host "Building $Service image..." -ForegroundColor Yellow
-    
-    try {
-        if ($Environment -eq "development") {
-            docker build -f "$Context/$Dockerfile" -t "$ProjectName-$Service`:$Version" $Context
-        }
-        else {
-            docker build -f "$Context/Dockerfile" -t "$ProjectName-$Service`:$Version" $Context
-        }
-        
-        Write-Host "✅ $Service image built successfully" -ForegroundColor Green
-    }
-    catch {
-        Write-Host "❌ Failed to build $Service image" -ForegroundColor Red
-        throw
-    }
-}
+Write-Host "🐳 Personal Health Platform - Docker Build Script" -ForegroundColor $Green
+Write-Host "================================================" -ForegroundColor $Green
+Write-Host ""
 
+# Check if Docker is installed
 try {
-    # Build backend image
-    if ($Environment -eq "development") {
-        Build-Image -Service "backend" -Dockerfile "Dockerfile.dev" -Context "backend"
-    }
-    else {
-        Build-Image -Service "backend" -Dockerfile "Dockerfile" -Context "backend"
-    }
-
-    # Build frontend image
-    if ($Environment -eq "development") {
-        Build-Image -Service "frontend" -Dockerfile "Dockerfile.dev" -Context "frontend"
-    }
-    else {
-        Build-Image -Service "frontend" -Dockerfile "Dockerfile" -Context "frontend"
-    }
-
-    Write-Host ""
-    Write-Host "🎉 All images built successfully!" -ForegroundColor Green
-
-    # List built images
-    Write-Host ""
-    Write-Host "Built images:" -ForegroundColor Yellow
-    docker images | Select-String $ProjectName
-
-    # Optional: Tag images for registry
-    if ($Environment -eq "production") {
-        Write-Host ""
-        Write-Host "Tagging images for production..." -ForegroundColor Yellow
-        docker tag "$ProjectName-backend:$Version" "$ProjectName-backend:latest"
-        docker tag "$ProjectName-frontend:$Version" "$ProjectName-frontend:latest"
-        Write-Host "✅ Images tagged for production" -ForegroundColor Green
-    }
-
-    Write-Host ""
-    Write-Host "🚀 Build completed successfully!" -ForegroundColor Green
-}
-catch {
-    Write-Host ""
-    Write-Host "❌ Build failed: $($_.Exception.Message)" -ForegroundColor Red
+    docker --version | Out-Null
+} catch {
+    Write-Host "❌ Docker is not installed. Please install Docker first." -ForegroundColor $Red
     exit 1
 }
+
+# Check if Docker Compose is installed
+try {
+    docker-compose --version | Out-Null
+} catch {
+    Write-Host "❌ Docker Compose is not installed. Please install Docker Compose first." -ForegroundColor $Red
+    exit 1
+}
+
+# Function to build backend
+function Build-Backend {
+    Write-Host "📦 Building Backend Image..." -ForegroundColor $Yellow
+    Push-Location backend
+    
+    if ($Registry) {
+        docker build -t "${Registry}/${BackendImage}:${Version}" .
+        docker tag "${Registry}/${BackendImage}:${Version}" "${Registry}/${BackendImage}:latest"
+    } else {
+        docker build -t "${BackendImage}:${Version}" .
+        docker tag "${BackendImage}:${Version}" "${BackendImage}:latest"
+    }
+    
+    Pop-Location
+    Write-Host "✅ Backend image built successfully" -ForegroundColor $Green
+    Write-Host ""
+}
+
+# Function to build frontend
+function Build-Frontend {
+    Write-Host "📦 Building Frontend Image..." -ForegroundColor $Yellow
+    Push-Location frontend
+    
+    if ($Registry) {
+        docker build -t "${Registry}/${FrontendImage}:${Version}" .
+        docker tag "${Registry}/${FrontendImage}:${Version}" "${Registry}/${FrontendImage}:latest"
+    } else {
+        docker build -t "${FrontendImage}:${Version}" .
+        docker tag "${FrontendImage}:${Version}" "${FrontendImage}:latest"
+    }
+    
+    Pop-Location
+    Write-Host "✅ Frontend image built successfully" -ForegroundColor $Green
+    Write-Host ""
+}
+
+# Function to build all services using docker-compose
+function Build-AllCompose {
+    Write-Host "📦 Building All Services with Docker Compose..." -ForegroundColor $Yellow
+    docker-compose build
+    Write-Host "✅ All services built successfully" -ForegroundColor $Green
+    Write-Host ""
+}
+
+# Function to push images
+function Push-Images {
+    if (-not $Registry) {
+        Write-Host "⚠️  No registry specified. Skipping push." -ForegroundColor $Yellow
+        Write-Host "   Set DOCKER_REGISTRY environment variable to push images." -ForegroundColor $Yellow
+        Write-Host ""
+        return
+    }
+    
+    Write-Host "📤 Pushing Images to Registry..." -ForegroundColor $Yellow
+    docker push "${Registry}/${BackendImage}:${Version}"
+    docker push "${Registry}/${BackendImage}:latest"
+    docker push "${Registry}/${FrontendImage}:${Version}"
+    docker push "${Registry}/${FrontendImage}:latest"
+    Write-Host "✅ Images pushed successfully" -ForegroundColor $Green
+    Write-Host ""
+}
+
+# Function to show image sizes
+function Show-ImageSizes {
+    Write-Host "📊 Image Sizes:" -ForegroundColor $Yellow
+    if ($Registry) {
+        docker images | Select-String -Pattern "${Registry}/${BackendImage}|${Registry}/${FrontendImage}"
+    } else {
+        docker images | Select-String -Pattern "${BackendImage}|${FrontendImage}"
+    }
+    Write-Host ""
+}
+
+# Main execution
+Write-Host "Building version: $Version" -ForegroundColor $Yellow
+if ($Registry) {
+    Write-Host "Registry: $Registry" -ForegroundColor $Yellow
+}
+Write-Host ""
+
+# Build based on service parameter
+switch ($Service.ToLower()) {
+    "backend" {
+        Build-Backend
+    }
+    "frontend" {
+        Build-Frontend
+    }
+    "all" {
+        Build-AllCompose
+    }
+    default {
+        Write-Host "❌ Invalid service: $Service" -ForegroundColor $Red
+        Write-Host "Usage: .\docker-build.ps1 [-Version <version>] [-Service <backend|frontend|all>] [-Registry <registry>]" -ForegroundColor $Yellow
+        exit 1
+    }
+}
+
+Show-ImageSizes
+
+# Ask if user wants to push
+if ($Registry) {
+    $response = Read-Host "Do you want to push images to registry? (y/N)"
+    if ($response -eq 'y' -or $response -eq 'Y') {
+        Push-Images
+    }
+}
+
+Write-Host "🎉 Build completed successfully!" -ForegroundColor $Green
+Write-Host "================================================" -ForegroundColor $Green
+Write-Host ""
+Write-Host "Next steps:" -ForegroundColor $Yellow
+Write-Host "  1. Run: " -NoNewline; Write-Host "docker-compose up -d" -ForegroundColor $Green -NoNewline; Write-Host " to start services"
+Write-Host "  2. Check logs: " -NoNewline; Write-Host "docker-compose logs -f" -ForegroundColor $Green
+Write-Host "  3. Access frontend: " -NoNewline; Write-Host "http://localhost" -ForegroundColor $Green
+Write-Host "  4. Access backend: " -NoNewline; Write-Host "http://localhost:5001" -ForegroundColor $Green
+Write-Host ""
