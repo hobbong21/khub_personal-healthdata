@@ -304,7 +304,7 @@ export class GenomicsController {
       // Re-perform analysis with updated algorithms
       const snpData = Object.entries(genomicData.snpData || {}).map(([rsid, genotype]) => ({
         rsid,
-        genotype,
+        genotype: String(genotype),
         chromosome: '', // Would need to be stored or looked up
         position: 0,
       }));

@@ -1,18 +1,27 @@
 import rateLimit from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
-import Redis from 'redis';
+import { createClient } from 'redis';
 
 // Redis 클라이언트 (캐시와 공유)
-const redis = Redis.createClient({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
-  password: process.env.REDIS_PASSWORD
+const redisClient = createClient({
+    socket: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379'),
+    },
+    password: process.env.REDIS_PASSWORD
 });
+
+redisClient.on('error', (err) => console.log('Redis Client Error', err));
+
+(async () => {
+    await redisClient.connect();
+})();
+
 
 // 기본 Rate Limit 설정
 export const basicRateLimit = rateLimit({
   store: new RedisStore({
-    client: redis,
+    sendCommand: (...args: string[]) => redisClient.sendCommand(args),
     prefix: 'rl:basic:'
   }),
   windowMs: 15 * 60 * 1000, // 15분
@@ -28,7 +37,7 @@ export const basicRateLimit = rateLimit({
 // 인증 API용 엄격한 Rate Limit
 export const authRateLimit = rateLimit({
   store: new RedisStore({
-    client: redis,
+    sendCommand: (...args: string[]) => redisClient.sendCommand(args),
     prefix: 'rl:auth:'
   }),
   windowMs: 15 * 60 * 1000, // 15분
@@ -45,7 +54,7 @@ export const apiSpecificRateLimit = {
   // 건강 데이터 조회 (자주 사용)
   healthData: rateLimit({
     store: new RedisStore({
-      client: redis,
+      sendCommand: (...args: string[]) => redisClient.sendCommand(args),
       prefix: 'rl:health:'
     }),
     windowMs: 1 * 60 * 1000, // 1분
@@ -56,7 +65,7 @@ export const apiSpecificRateLimit = {
   // 파일 업로드 (리소스 집약적)
   fileUpload: rateLimit({
     store: new RedisStore({
-      client: redis,
+      sendCommand: (...args: string[]) => redisClient.sendCommand(args),
       prefix: 'rl:upload:'
     }),
     windowMs: 1 * 60 * 1000, // 1분
@@ -67,7 +76,7 @@ export const apiSpecificRateLimit = {
   // AI 분석 (CPU 집약적)
   aiAnalysis: rateLimit({
     store: new RedisStore({
-      client: redis,
+      sendCommand: (...args: string[]) => redisClient.sendCommand(args),
       prefix: 'rl:ai:'
     }),
     windowMs: 5 * 60 * 1000, // 5분
@@ -97,8 +106,8 @@ export const dynamicRateLimit = (req: any, res: any, next: any) => {
   
   const dynamicLimit = rateLimit({
     store: new RedisStore({
-      client: redis,
-      prefix: `rl:dynamic:${user?.id || 'anonymous'}:`
+        sendCommand: (...args: string[]) => redisClient.sendCommand(args),
+        prefix: `rl:dynamic:${user?.id || 'anonymous'}:`
     }),
     windowMs: 15 * 60 * 1000,
     max: maxRequests,
@@ -118,7 +127,7 @@ export const rateLimitMonitor = (req: any, res: any, next: any) => {
     const limit = res.getHeader('X-RateLimit-Limit');
     
     if (remaining && limit) {
-      const usage = ((limit - remaining) / limit) * 100;
+      const usage = ((Number(limit) - Number(remaining)) / Number(limit)) * 100;
       
       // 사용률이 80% 이상일 때 경고
       if (usage >= 80) {

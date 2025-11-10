@@ -9,9 +9,20 @@ declare global {
       user?: {
         id: string;
         email: string;
+        role?: string;
+        name?: string;
       };
     }
   }
+}
+
+export interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    email: string;
+    role?: string;
+    name?: string;
+  };
 }
 
 /**

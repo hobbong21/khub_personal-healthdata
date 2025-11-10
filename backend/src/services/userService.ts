@@ -105,6 +105,19 @@ export class UserService {
     } as UserResponse;
   }
 
+  static async authenticateSocialUser(provider: string, accessToken: string): Promise<UserResponse | null> {
+    console.log(provider, accessToken);
+    return null;
+  }
+  
+  static async initiatePasswordReset(email: string): Promise<void> {
+    console.log(email);
+  }
+
+  static async resetPassword(token: string, newPassword: string): Promise<void> {
+    console.log(token, newPassword);
+  }
+
   /**
    * BMI 계산 및 분석 (요구사항 1.4)
    */

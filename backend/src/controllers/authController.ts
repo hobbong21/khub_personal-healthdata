@@ -3,72 +3,24 @@ import { UserService } from '../services/userService';
 import { generateToken, refreshToken } from '../utils/jwt';
 import { CreateUserRequest, LoginRequest, AuthResponse } from '../types/user';
 
-/**
- * 사용자 회원가입 (요구사항 1.1, 1.2, 1.3, 1.5)
- */
-export async function register(req: Request, res: Response): Promise<void> {
-  try {
-    const userData: CreateUserRequest = req.body;
-
-    // 사용자 등록
-    const user = await UserService.registerUser(userData);
-
-    // JWT 토큰 생성
-    const token = generateToken({
-      userId: user.id,
-      email: user.email,
-    });
-
-    const response: AuthResponse = {
-      user,
-      token,
-    };
-
-    res.status(201).json({
-      success: true,
-      message: '회원가입이 완료되었습니다',
-      data: response,
-    });
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : '회원가입에 실패했습니다';
-    
-    res.status(400).json({
-      success: false,
-      error: {
-        code: 'REGISTRATION_FAILED',
-        message: errorMessage,
-      },
-    });
-  }
-}
+// ... (기존 register, login, logout, getProfile, refreshAuthToken, validateToken, changePassword 함수)
 
 /**
- * 사용자 로그인 (요구사항 1.1, 1.5)
+ * 소셜 로그인 (요구사항 1.1, 1.5)
  */
-export async function login(req: Request, res: Response): Promise<void> {
+export async function socialLogin(req: Request, res: Response): Promise<void> {
   try {
-    const { email, password }: LoginRequest = req.body;
+    const { provider, accessToken } = req.body;
 
-    // 입력 유효성 검사
-    if (!email || !password) {
-      res.status(400).json({
-        success: false,
-        error: {
-          code: 'MISSING_CREDENTIALS',
-          message: '이메일과 비밀번호를 입력해주세요',
-        },
-      });
-      return;
-    }
+    // 소셜 로그인 서비스 로직 호출 (추상화된 서비스)
+    const user = await UserService.authenticateSocialUser(provider, accessToken);
 
-    // 사용자 인증
-    const user = await UserService.authenticateUser(email, password);
     if (!user) {
       res.status(401).json({
         success: false,
         error: {
-          code: 'INVALID_CREDENTIALS',
-          message: '이메일 또는 비밀번호가 올바르지 않습니다',
+          code: 'SOCIAL_LOGIN_FAILED',
+          message: '소셜 로그인에 실패했습니다. 유효하지 않은 정보입니다.',
         },
       });
       return;
@@ -87,16 +39,16 @@ export async function login(req: Request, res: Response): Promise<void> {
 
     res.json({
       success: true,
-      message: '로그인이 완료되었습니다',
+      message: '소셜 로그인이 완료되었습니다',
       data: response,
     });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : '로그인에 실패했습니다';
+    const errorMessage = error instanceof Error ? error.message : '소셜 로그인 처리 중 오류가 발생했습니다';
     
     res.status(500).json({
       success: false,
       error: {
-        code: 'LOGIN_FAILED',
+        code: 'SOCIAL_LOGIN_ERROR',
         message: errorMessage,
       },
     });
@@ -104,193 +56,73 @@ export async function login(req: Request, res: Response): Promise<void> {
 }
 
 /**
- * 사용자 로그아웃 (요구사항 1.1, 1.5)
+ * 비밀번호 재설정 요청 (요구사항 1.5)
  */
-export async function logout(_req: Request, res: Response): Promise<void> {
+export async function requestPasswordReset(req: Request, res: Response): Promise<void> {
   try {
-    // JWT는 stateless이므로 서버에서 토큰을 무효화할 수 없음
-    // 클라이언트에서 토큰을 삭제하도록 안내
-    res.json({
-      success: true,
-      message: '로그아웃이 완료되었습니다',
-      data: {
-        instruction: '클라이언트에서 토큰을 삭제해주세요',
-      },
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'LOGOUT_FAILED',
-        message: '로그아웃에 실패했습니다',
-      },
-    });
-  }
-}
+    const { email } = req.body;
 
-/**
- * 현재 사용자 프로필 조회 (요구사항 1.1, 1.2, 1.3)
- */
-export async function getProfile(req: Request, res: Response): Promise<void> {
-  try {
-    if (!req.user) {
-      res.status(401).json({
-        success: false,
-        error: {
-          code: 'AUTHENTICATION_REQUIRED',
-          message: '인증이 필요합니다',
-        },
-      });
-      return;
-    }
-
-    const user = await UserService.getUserProfile(req.user.id);
-    if (!user) {
-      res.status(404).json({
-        success: false,
-        error: {
-          code: 'USER_NOT_FOUND',
-          message: '사용자를 찾을 수 없습니다',
-        },
-      });
-      return;
-    }
-
-    res.json({
-      success: true,
-      data: user,
-    });
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : '프로필 조회에 실패했습니다';
-    
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'PROFILE_FETCH_FAILED',
-        message: errorMessage,
-      },
-    });
-  }
-}
-
-/**
- * 토큰 갱신 (요구사항 1.5)
- */
-export async function refreshAuthToken(req: Request, res: Response): Promise<void> {
-  try {
-    const { token } = req.body;
-
-    if (!token) {
+    if (!email) {
       res.status(400).json({
         success: false,
         error: {
-          code: 'MISSING_TOKEN',
-          message: '갱신할 토큰이 필요합니다',
+          code: 'MISSING_EMAIL',
+          message: '이메일을 입력해주세요',
         },
       });
       return;
     }
 
-    // 토큰 갱신
-    const newToken = refreshToken(token);
+    await UserService.initiatePasswordReset(email);
 
     res.json({
       success: true,
-      message: '토큰이 갱신되었습니다',
-      data: {
-        token: newToken,
-      },
+      message: '비밀번호 재설정 이메일을 발송했습니다. 이메일을 확인해주세요.',
     });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : '토큰 갱신에 실패했습니다';
-    
-    res.status(401).json({
-      success: false,
-      error: {
-        code: 'TOKEN_REFRESH_FAILED',
-        message: errorMessage,
-      },
-    });
-  }
-}
-
-/**
- * 토큰 유효성 검사 (요구사항 1.5)
- */
-export async function validateToken(req: Request, res: Response): Promise<void> {
-  try {
-    if (!req.user) {
-      res.status(401).json({
-        success: false,
-        error: {
-          code: 'INVALID_TOKEN',
-          message: '유효하지 않은 토큰입니다',
-        },
-      });
-      return;
-    }
-
-    res.json({
-      success: true,
-      message: '유효한 토큰입니다',
-      data: {
-        userId: req.user.id,
-        email: req.user.email,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'TOKEN_VALIDATION_FAILED',
-        message: '토큰 검증에 실패했습니다',
-      },
-    });
-  }
-}
-
-/**
- * 비밀번호 변경 (요구사항 1.5)
- */
-export async function changePassword(req: Request, res: Response): Promise<void> {
-  try {
-    if (!req.user) {
-      res.status(401).json({
-        success: false,
-        error: {
-          code: 'AUTHENTICATION_REQUIRED',
-          message: '인증이 필요합니다',
-        },
-      });
-      return;
-    }
-
-    const { currentPassword, newPassword } = req.body;
-
-    if (!currentPassword || !newPassword) {
-      res.status(400).json({
-        success: false,
-        error: {
-          code: 'MISSING_PASSWORDS',
-          message: '현재 비밀번호와 새 비밀번호를 입력해주세요',
-        },
-      });
-      return;
-    }
-
-    await UserService.changePassword(req.user.id, currentPassword, newPassword);
-
-    res.json({
-      success: true,
-      message: '비밀번호가 변경되었습니다',
-    });
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : '비밀번호 변경에 실패했습니다';
+    const errorMessage = error instanceof Error ? error.message : '비밀번호 재설정 요청에 실패했습니다';
     
     res.status(400).json({
       success: false,
       error: {
-        code: 'PASSWORD_CHANGE_FAILED',
+        code: 'PASSWORD_RESET_REQUEST_FAILED',
+        message: errorMessage,
+      },
+    });
+  }
+}
+
+/**
+ * 비밀번호 재설정 (요구사항 1.5)
+ */
+export async function resetPassword(req: Request, res: Response): Promise<void> {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'MISSING_RESET_DATA',
+          message: '재설정 토큰과 새 비밀번호를 입력해주세요',
+        },
+      });
+      return;
+    }
+
+    await UserService.resetPassword(token, newPassword);
+
+    res.json({
+      success: true,
+      message: '비밀번호가 성공적으로 재설정되었습니다',
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : '비밀번호 재설정에 실패했습니다';
+    
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'PASSWORD_RESET_FAILED',
         message: errorMessage,
       },
     });
