@@ -84,11 +84,11 @@ deploy_development() {
     log_info "개발 환경 배포 시작..."
     
     # 개발 환경 시작
-    docker-compose -f docker-compose.dev.yml up -d
+    docker-compose -f config/docker-compose.dev.yml up -d
     
     # 서비스 상태 확인
     sleep 10
-    docker-compose -f docker-compose.dev.yml ps
+    docker-compose -f config/docker-compose.dev.yml ps
     
     log_success "개발 환경 배포 완료!"
     echo ""
@@ -105,20 +105,20 @@ deploy_production() {
     
     # 이미지 빌드
     log_info "Docker 이미지 빌드 중..."
-    docker-compose build --no-cache
+    docker-compose -f config/docker-compose.prod.yml build --no-cache
     
     # 프로덕션 환경 시작
     log_info "서비스 시작 중..."
-    docker-compose up -d
+    docker-compose -f config/docker-compose.prod.yml up -d
     
     # 서비스 상태 확인
     sleep 15
-    docker-compose ps
+    docker-compose -f config/docker-compose.prod.yml ps
     
     # 헬스체크 대기
     log_info "헬스체크 대기 중..."
     for i in {1..30}; do
-        if docker-compose exec -T backend node healthcheck.js &> /dev/null; then
+        if docker-compose -f config/docker-compose.prod.yml exec -T backend node healthcheck.js &> /dev/null; then
             break
         fi
         echo -n "."
@@ -138,9 +138,9 @@ stop_services() {
     log_info "서비스 중지 중..."
     
     if [ "$1" = "dev" ]; then
-        docker-compose -f docker-compose.dev.yml down
+        docker-compose -f config/docker-compose.dev.yml down
     else
-        docker-compose down
+        docker-compose -f config/docker-compose.prod.yml down
     fi
     
     log_success "서비스가 중지되었습니다."
@@ -149,9 +149,9 @@ stop_services() {
 # 로그 확인
 show_logs() {
     if [ "$1" = "dev" ]; then
-        docker-compose -f docker-compose.dev.yml logs -f
+        docker-compose -f config/docker-compose.dev.yml logs -f
     else
-        docker-compose logs -f
+        docker-compose -f config/docker-compose.prod.yml logs -f
     fi
 }
 
@@ -160,9 +160,9 @@ check_status() {
     log_info "서비스 상태 확인 중..."
     
     if [ "$1" = "dev" ]; then
-        docker-compose -f docker-compose.dev.yml ps
+        docker-compose -f config/docker-compose.dev.yml ps
     else
-        docker-compose ps
+        docker-compose -f config/docker-compose.prod.yml ps
     fi
 }
 
@@ -181,7 +181,7 @@ cleanup() {
 show_menu() {
     echo ""
     echo "K-hub 배포 관리"
-    echo "================"
+    echo "================="
     echo "1) 개발 환경 배포"
     echo "2) 프로덕션 환경 배포"
     echo "3) 개발 환경 중지"

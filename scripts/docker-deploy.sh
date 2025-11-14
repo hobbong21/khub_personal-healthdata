@@ -16,13 +16,13 @@ COMPOSE_FILE=""
 
 case $ENVIRONMENT in
     "development")
-        COMPOSE_FILE="docker-compose.dev.yml"
+        COMPOSE_FILE="config/docker-compose.dev.yml"
         ;;
     "staging")
-        COMPOSE_FILE="docker-compose.yml"
+        COMPOSE_FILE="config/docker-compose.yml"
         ;;
     "production")
-        COMPOSE_FILE="docker-compose.prod.yml"
+        COMPOSE_FILE="config/docker-compose.prod.yml"
         ;;
     *)
         echo -e "${RED}❌ Invalid environment: $ENVIRONMENT${NC}"

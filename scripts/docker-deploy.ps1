@@ -7,9 +7,9 @@ param(
 
 # Configuration
 $ComposeFile = switch ($Environment) {
-    "development" { "docker-compose.dev.yml" }
-    "staging" { "docker-compose.yml" }
-    "production" { "docker-compose.prod.yml" }
+    "development" { "config/docker-compose.dev.yml" }
+    "staging" { "config/docker-compose.yml" }
+    "production" { "config/docker-compose.prod.yml" }
 }
 
 Write-Host "🚀 Deploying Health Platform to $Environment environment" -ForegroundColor Green

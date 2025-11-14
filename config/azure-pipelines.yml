@@ -164,7 +164,7 @@ stages:
     - script: |
         cp .env.example .env
         sed -i 's/your-secure-postgres-password/test_password/g' .env
-        docker-compose -f docker-compose.dev.yml up -d
+        docker-compose -f config/docker-compose.dev.yml up -d
         sleep 30
       displayName: 'Start Test Environment'
     
@@ -181,7 +181,7 @@ stages:
       displayName: 'Run E2E Tests'
     
     - script: |
-        docker-compose -f docker-compose.dev.yml down
+        docker-compose -f config/docker-compose.dev.yml down
       displayName: 'Cleanup Test Environment'
       condition: always()
     

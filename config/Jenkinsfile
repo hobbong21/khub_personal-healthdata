@@ -271,7 +271,7 @@ pipeline {
                 script {
                     try {
                         sh '''
-                            docker-compose -f docker-compose.dev.yml up -d
+                            docker-compose -f config/docker-compose.dev.yml up -d
                             sleep 30
                             
                             # Wait for services to be ready
@@ -287,7 +287,7 @@ pipeline {
                             '''
                         }
                     } finally {
-                        sh 'docker-compose -f docker-compose.dev.yml down'
+                        sh 'docker-compose -f config/docker-compose.dev.yml down'
                     }
                 }
             }
@@ -312,7 +312,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                        helm upgrade --install khub-staging ./helm/khub \\
+                        helm upgrade --install khub-staging ./config/helm/khub \\
                             --namespace ${STAGING_NAMESPACE} \\
                             --create-namespace \\
                             --set image.backend.repository=${BACKEND_IMAGE} \\
@@ -320,7 +320,7 @@ pipeline {
                             --set image.frontend.repository=${FRONTEND_IMAGE} \\
                             --set image.frontend.tag=${BUILD_VERSION} \\
                             --set environment=staging \\
-                            --values ./helm/khub/values-staging.yaml \\
+                            --values ./config/helm/khub/values-staging.yaml \\
                             --wait --timeout=300s
                     """
                     
@@ -384,7 +384,7 @@ pipeline {
                         
                         // Blue-Green 배포
                         sh """
-                            helm upgrade --install khub-production ./helm/khub \\
+                            helm upgrade --install khub-production ./config/helm/khub \\
                                 --namespace ${PRODUCTION_NAMESPACE} \\
                                 --create-namespace \\
                                 --set image.backend.repository=${BACKEND_IMAGE} \\
@@ -393,7 +393,7 @@ pipeline {
                                 --set image.frontend.tag=${BUILD_VERSION} \\
                                 --set environment=production \\
                                 --set deployment.strategy=blue-green \\
-                                --values ./helm/khub/values-production.yaml \\
+                                --values ./config/helm/khub/values-production.yaml \\
                                 --wait --timeout=600s
                         """
                         
@@ -435,7 +435,7 @@ pipeline {
                         script: '''
                             curl -s "${PROMETHEUS_URL}/api/v1/query?query=rate(http_requests_total{status=~\\"5..\\"}[5m])" | \\
                             jq -r '.data.result[0].value[1] // "0"'
-                        ''',
+                        ''', 
                         returnStdout: true
                     ).trim()
                     
@@ -452,7 +452,7 @@ pipeline {
             // 정리
             sh '''
                 docker system prune -f
-                docker-compose -f docker-compose.dev.yml down || true
+                docker-compose -f config/docker-compose.dev.yml down || true
             '''
         }
         
@@ -488,4 +488,4 @@ pipeline {
             }
         }
     }
-}
+} 
