@@ -1,5 +1,9 @@
 import express from 'express';
-import { DataAnonymizationController } from '../controllers/dataAnonymizationController';
+import { 
+    requestDataAnonymization,
+    getAnonymizationHistory,
+    getAnonymizationStats
+ } from '../controllers/dataAnonymizationController';
 import { authenticateToken } from '../middleware/auth';
 import { body, param, query } from 'express-validator';
 import { validateRequest } from '../middleware/validation';
@@ -12,7 +16,7 @@ router.use(authenticateToken);
 /**
  * 지원되는 익명화 방법 목록 조회
  */
-router.get('/methods', DataAnonymizationController.getAnonymizationMethods);
+// router.get('/methods', getAnonymizationMethods);
 
 /**
  * 사용자 데이터 익명화 (요구사항 16.1)
@@ -43,7 +47,7 @@ router.post(
       .withMessage('유효한 익명화 방법을 선택해주세요'),
   ],
   validateRequest,
-  DataAnonymizationController.anonymizeUserData
+  requestDataAnonymization
 );
 
 /**
@@ -62,44 +66,44 @@ router.get(
       .withMessage('제한 수는 1-100 사이의 정수여야 합니다'),
   ],
   validateRequest,
-  DataAnonymizationController.getAnonymizationLogs
+  getAnonymizationHistory
 );
 
 /**
  * 전체 익명화 통계 조회 (관리자용)
  */
-router.get('/stats', DataAnonymizationController.getAnonymizationStats);
+router.get('/stats', getAnonymizationStats);
 
 /**
  * 데이터 품질 평가 (요구사항 16.1)
  */
-router.get(
-  '/quality/:anonymizedUserId',
-  [
-    param('anonymizedUserId')
-      .matches(/^anon_[a-f0-9]{16}$/)
-      .withMessage('유효한 익명화 사용자 ID를 제공해주세요'),
-  ],
-  validateRequest,
-  DataAnonymizationController.evaluateDataQuality
-);
+// router.get(
+//   '/quality/:anonymizedUserId',
+//   [
+//     param('anonymizedUserId')
+//       .matches(/^anon_[a-f0-9]{16}$/)
+//       .withMessage('유효한 익명화 사용자 ID를 제공해주세요'),
+//   ],
+//   validateRequest,
+//   evaluateDataQuality
+// );
 
 /**
  * 익명화 데이터 내보내기
  */
-router.get(
-  '/export/:anonymizedUserId',
-  [
-    param('anonymizedUserId')
-      .matches(/^anon_[a-f0-9]{16}$/)
-      .withMessage('유효한 익명화 사용자 ID를 제공해주세요'),
-    query('format')
-      .optional()
-      .isIn(['json', 'csv', 'download'])
-      .withMessage('유효한 형식을 선택해주세요 (json, csv, download)'),
-  ],
-  validateRequest,
-  DataAnonymizationController.exportAnonymizedData
-);
+// router.get(
+//   '/export/:anonymizedUserId',
+//   [
+//     param('anonymizedUserId')
+//       .matches(/^anon_[a-f0-9]{16}$/)
+//       .withMessage('유효한 익명화 사용자 ID를 제공해주세요'),
+//     query('format')
+//       .optional()
+//       .isIn(['json', 'csv', 'download'])
+//       .withMessage('유효한 형식을 선택해주세요 (json, csv, download)'),
+//   ],
+//   validateRequest,
+//   exportAnonymizedData
+// );
 
 export default router;

@@ -37,9 +37,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (token) {
       try {
         const response = await authApi.validateToken();
-        const savedUser = localStorage.getItem('user_data');
-        if (response.data.success && savedUser) {
-          setUser(JSON.parse(savedUser));
+        // Upon validation, API should return user data. Use it.
+        if (response.data && response.data.user) {
+            const validatedUser = response.data.user;
+            setUser(validatedUser);
+            localStorage.setItem('user_data', JSON.stringify(validatedUser));
+        } else {
+            // If validation fails or response is malformed, log out.
+            logout();
         }
       } catch (error) {
         console.error('Token validation failed:', error);
@@ -55,8 +60,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (credentials: LoginRequest) => {
     const response = await authApi.loginUser(credentials);
-    const { user, token } = response.data.data;
-    handleAuthSuccess(user, token);
+    // Safely destructure with checks
+    if (response.data && response.data.data) {
+        const { user, token } = response.data.data;
+        if(user && token) {
+            handleAuthSuccess(user, token);
+        } else {
+            throw new Error('Login failed: Invalid user or token received.');
+        }
+    } else {
+      throw new Error(response.data.message || 'Login failed: Invalid response from server.');
+    }
   };
 
   const register = async (userData: CreateUserRequest) => {
@@ -65,8 +79,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const socialLogin = async (provider: string, accessToken: string) => {
     const response = await authApi.socialLogin(provider, accessToken);
-    const { user, token } = response.data.data;
-    handleAuthSuccess(user, token);
+    // Safely destructure with checks
+    if (response.data && response.data.data) {
+        const { user, token } = response.data.data;
+        if(user && token) {
+            handleAuthSuccess(user, token);
+        } else {
+            throw new Error('Social login failed: Invalid user or token received.');
+        }
+    } else {
+        throw new Error(response.data.message || 'Social login failed: Invalid response from server.');
+    }
   };
 
   const requestPasswordReset = async (email: string) => {

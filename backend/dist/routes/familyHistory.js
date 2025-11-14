@@ -1,0 +1,27 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const familyHistoryController_1 = require("../controllers/familyHistoryController");
+const auth_1 = require("../middleware/auth");
+const validation_1 = require("../middleware/validation");
+const router = (0, express_1.Router)();
+router.use(auth_1.authenticateToken);
+router.post('/members', validation_1.validateFamilyMember, familyHistoryController_1.FamilyHistoryController.createFamilyMember);
+router.get('/members', familyHistoryController_1.FamilyHistoryController.getFamilyMembers);
+router.get('/members/:id', familyHistoryController_1.FamilyHistoryController.getFamilyMemberById);
+router.put('/members/:id', validation_1.validateFamilyMember, familyHistoryController_1.FamilyHistoryController.updateFamilyMember);
+router.delete('/members/:id', familyHistoryController_1.FamilyHistoryController.deleteFamilyMember);
+router.get('/tree', familyHistoryController_1.FamilyHistoryController.getFamilyTree);
+router.get('/generation/:generation', familyHistoryController_1.FamilyHistoryController.getFamilyMembersByGeneration);
+router.get('/condition/:condition/members', familyHistoryController_1.FamilyHistoryController.getFamilyMembersWithCondition);
+router.get('/stats', familyHistoryController_1.FamilyHistoryController.getFamilyHistoryStats);
+router.get('/summary', familyHistoryController_1.FamilyHistoryController.getFamilyHealthSummary);
+router.get('/genetic-conditions', familyHistoryController_1.FamilyHistoryController.getGeneticConditions);
+router.post('/genetic-conditions/initialize', familyHistoryController_1.FamilyHistoryController.initializeGeneticConditions);
+router.get('/risk-assessments', familyHistoryController_1.FamilyHistoryController.getFamilyRiskAssessments);
+router.get('/risk-assessments/high-risk', familyHistoryController_1.FamilyHistoryController.getHighRiskAssessments);
+router.get('/risk-assessments/condition/:condition', familyHistoryController_1.FamilyHistoryController.getRiskAssessmentForCondition);
+router.post('/risk-assessments/comprehensive', familyHistoryController_1.FamilyHistoryController.calculateComprehensiveRiskAssessment);
+router.get('/risk-score/:condition', familyHistoryController_1.FamilyHistoryController.calculateGeneticRiskScore);
+exports.default = router;
+//# sourceMappingURL=familyHistory.js.map

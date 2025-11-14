@@ -7,14 +7,14 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY backend/package*.json ./
 
 # Install all dependencies (including dev dependencies for build)
 RUN npm install && \
     npm cache clean --force
 
 # Copy source code
-COPY . .
+COPY backend/ . 
 
 # Build TypeScript
 RUN npm run build
@@ -33,7 +33,7 @@ RUN addgroup -g 1001 -S nodejs && \
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY backend/package*.json ./
 
 # Install only production dependencies
 RUN npm install --only=production && \

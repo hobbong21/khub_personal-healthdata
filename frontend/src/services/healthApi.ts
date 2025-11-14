@@ -1,209 +1,49 @@
-import { 
-  VitalSignRequest, 
-  VitalSignResponse, 
-  VitalSignTrend,
-  HealthJournalRequest,
-  HealthRecordResponse,
-  ApiResponse 
-} from '../types/health';
+import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
-class HealthApiService {
-  private getHeaders(): HeadersInit {
-    const token = localStorage.getItem('auth_token');
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-    };
+// Create a single axios instance for health-related APIs.
+const axiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
-    return headers;
+// Add an authorization interceptor to the instance.
+axiosInstance.interceptors.request.use((config) => {
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
 
-  private async request<T>(
-    endpoint: string, 
-    options: RequestInit = {}
-  ): Promise<ApiResponse<T>> {
-    const url = `${API_BASE_URL}${endpoint}`;
-    
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        ...this.getHeaders(),
-        ...options.headers,
-      },
-    });
+// --- API Function Definitions ---
 
-    const data = await response.json();
+// Health Data
+const getHealthData = () => axiosInstance.get('/health-data');
+const addHealthData = (data: any) => axiosInstance.post('/health-data', data);
 
-    if (!response.ok) {
-      throw new Error(data.error?.message || `HTTP error! status: ${response.status}`);
-    }
+// Vitals
+const getVitalSigns = () => axiosInstance.get('/vitals');
+const addVitalSign = (data: any) => axiosInstance.post('/vitals', data);
 
-    return data;
-  }
+// Medication
+const getMedications = () => axiosInstance.get('/medications');
+const addMedication = (data: any) => axiosInstance.post('/medications', data);
 
-  // 바이탈 사인 관련 API (요구사항 2.1, 2.2)
-  async createVitalSign(vitalSignData: VitalSignRequest): Promise<VitalSignResponse> {
-    const response = await this.request<VitalSignResponse>('/health/vitals', {
-      method: 'POST',
-      body: JSON.stringify(vitalSignData),
-    });
-
-    if (response.data) {
-      return response.data;
-    }
-
-    throw new Error('바이탈 사인 기록에 실패했습니다');
-  }
-
-  async getVitalSigns(
-    type?: string,
-    startDate?: string,
-    endDate?: string,
-    limit?: number
-  ): Promise<VitalSignResponse[]> {
-    const params = new URLSearchParams();
-    if (type) params.append('type', type);
-    if (startDate) params.append('startDate', startDate);
-    if (endDate) params.append('endDate', endDate);
-    if (limit) params.append('limit', limit.toString());
-
-    const response = await this.request<VitalSignResponse[]>(`/health/vitals?${params.toString()}`);
-    
-    if (response.data) {
-      return response.data;
-    }
-
-    throw new Error('바이탈 사인 조회에 실패했습니다');
-  }
-
-  // 바이탈 사인 트렌드 분석 (요구사항 2.3, 2.4)
-  async getVitalSignTrends(
-    type: string,
-    period: 'daily' | 'weekly' | 'monthly' = 'daily',
-    days: number = 30
-  ): Promise<VitalSignTrend> {
-    const params = new URLSearchParams({
-      type,
-      period,
-      days: days.toString()
-    });
-
-    const response = await this.request<VitalSignTrend>(`/health/vitals/trends?${params.toString()}`);
-    
-    if (response.data) {
-      return response.data;
-    }
-
-    throw new Error('바이탈 사인 트렌드 분석에 실패했습니다');
-  }
-
-  // 건강 일지 관련 API (요구사항 3.1, 3.2, 3.3, 3.4, 3.5)
-  async createHealthJournal(journalData: HealthJournalRequest): Promise<HealthRecordResponse> {
-    const response = await this.request<HealthRecordResponse>('/health/journal', {
-      method: 'POST',
-      body: JSON.stringify(journalData),
-    });
-
-    if (response.data) {
-      return response.data;
-    }
-
-    throw new Error('건강 일지 기록에 실패했습니다');
-  }
-
-  async getHealthJournals(
-    startDate?: string,
-    endDate?: string,
-    limit?: number
-  ): Promise<HealthRecordResponse[]> {
-    const params = new URLSearchParams();
-    if (startDate) params.append('startDate', startDate);
-    if (endDate) params.append('endDate', endDate);
-    if (limit) params.append('limit', limit.toString());
-
-    const response = await this.request<HealthRecordResponse[]>(`/health/journal?${params.toString()}`);
-    
-    if (response.data) {
-      return response.data;
-    }
-
-    throw new Error('건강 일지 조회에 실패했습니다');
-  }
-
-  // 건강 기록 수정/삭제 (요구사항 2.5)
-  async updateHealthRecord(recordId: string, updateData: any): Promise<HealthRecordResponse> {
-    const response = await this.request<HealthRecordResponse>(`/health/records/${recordId}`, {
-      method: 'PUT',
-      body: JSON.stringify(updateData),
-    });
-
-    if (response.data) {
-      return response.data;
-    }
-
-    throw new Error('건강 기록 업데이트에 실패했습니다');
-  }
-
-  async deleteHealthRecord(recordId: string): Promise<void> {
-    await this.request(`/health/records/${recordId}`, {
-      method: 'DELETE',
-    });
-  }
-
-  // 건강 데이터 대시보드 요약
-  async getHealthSummary(): Promise<any> {
-    const response = await this.request<any>('/health/summary');
-    
-    if (response.data) {
-      return response.data;
-    }
-
-    throw new Error('건강 데이터 요약 조회에 실패했습니다');
-  }
-
-  // 대시보드 종합 데이터 조회 (요구사항 4.1, 4.2, 4.3)
-  async getDashboardData(): Promise<any> {
-    const response = await this.request<any>('/health/dashboard');
-    
-    if (response.data) {
-      return response.data;
-    }
-
-    throw new Error('대시보드 데이터 조회에 실패했습니다');
-  }
-
-  // 건강 지표 트렌드 분석 (요구사항 4.1, 4.2)
-  async getHealthTrends(period: string = 'monthly', days: number = 30): Promise<any> {
-    const params = new URLSearchParams({
-      period,
-      days: days.toString()
-    });
-
-    const response = await this.request<any>(`/health/dashboard/trends?${params.toString()}`);
-    
-    if (response.data) {
-      return response.data;
-    }
-
-    throw new Error('건강 지표 트렌드 분석에 실패했습니다');
-  }
-
-  // 목표 달성률 조회 (요구사항 4.3)
-  async getGoalProgress(): Promise<any> {
-    const response = await this.request<any>('/health/dashboard/goals');
-    
-    if (response.data) {
-      return response.data;
-    }
-
-    throw new Error('목표 달성률 조회에 실패했습니다');
-  }
-}
-
-export const healthApiService = new HealthApiService();
-export default healthApiService;
+/**
+ * A single object that groups all health-related API functions.
+ * This is the only export from this module.
+ */
+export const healthApi = {
+  getHealthData,
+  addHealthData,
+  getVitalSigns,
+  addVitalSign,
+  getMedications,
+  addMedication,
+};

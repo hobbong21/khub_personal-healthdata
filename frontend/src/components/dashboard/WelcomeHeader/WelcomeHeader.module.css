@@ -1,0 +1,24 @@
+.welcomeHeader {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  margin-bottom: 2rem;
+}
+
+.welcomeHeader h1 {
+  font-size: 2rem;
+  color: #1a202c;
+  margin-bottom: 0.5rem;
+}
+
+.welcomeHeader p {
+  color: #718096;
+  font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+  .welcomeHeader h1 {
+    font-size: 1.5rem;
+  }
+}

@@ -1,0 +1,25 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const medicationController_1 = require("../controllers/medicationController");
+const auth_1 = require("../middleware/auth");
+const validation_1 = require("../middleware/validation");
+const router = (0, express_1.Router)();
+router.use(auth_1.authenticateToken);
+router.post('/', validation_1.validateMedication, medicationController_1.MedicationController.createMedication);
+router.get('/', medicationController_1.MedicationController.getMedications);
+router.put('/:id', medicationController_1.MedicationController.updateMedication);
+router.delete('/:id', medicationController_1.MedicationController.deleteMedication);
+router.post('/:id/schedules', validation_1.validateSchedule, medicationController_1.MedicationController.createSchedule);
+router.get('/today-schedule', medicationController_1.MedicationController.getTodaySchedule);
+router.post('/:id/dosage-logs', validation_1.validateDosageLog, medicationController_1.MedicationController.logDosage);
+router.post('/:id/side-effects', validation_1.validateSideEffect, medicationController_1.MedicationController.reportSideEffect);
+router.get('/interactions', medicationController_1.MedicationController.checkInteractions);
+router.post('/check-interactions', medicationController_1.MedicationController.checkNewMedicationInteractions);
+router.get('/:id/adherence', medicationController_1.MedicationController.getAdherence);
+router.get('/stats', medicationController_1.MedicationController.getStats);
+router.get('/reminders', medicationController_1.MedicationController.getReminders);
+router.get('/search', medicationController_1.MedicationController.searchMedications);
+router.get('/expiring', medicationController_1.MedicationController.getExpiringMedications);
+exports.default = router;
+//# sourceMappingURL=medication.js.map

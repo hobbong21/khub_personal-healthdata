@@ -6,6 +6,24 @@ import {
 } from '../types/health';
 
 export class HealthService {
+
+  /**
+   * Retrieves a summary of the user's health data for the dashboard.
+   * This is an alias for getDashboardSummary to resolve controller dependency.
+   */
+  static async getHealthSummary(userId: string): Promise<any> {
+    return this.getDashboardSummary(userId);
+  }
+
+  /**
+   * Retrieves detailed health data, which for now is the dashboard summary.
+   * This is an alias for getDashboardSummary to resolve controller dependency.
+   */
+  static async getHealthData(userId: string, options: any): Promise<any> {
+    // The options parameter is not used for now but is kept for future compatibility.
+    return this.getDashboardSummary(userId);
+  }
+
   /**
    * 바이탈 사인 기록 생성 (요구사항 2.1, 2.2)
    */

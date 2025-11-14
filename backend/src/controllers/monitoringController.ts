@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+  import { Request, Response } from 'express';
 import { monitoringService } from '../services/monitoringService';
 import { loggingService } from '../services/loggingService';
 
@@ -161,7 +161,7 @@ export async function trackUserBehavior(req: Request, res: Response): Promise<vo
     }
 
     const userId = req.user?.id || 'anonymous';
-    const sessionId = req.sessionID || 'unknown';
+    const sessionId = req.session?.id || 'unknown';
     const userAgent = req.get('User-Agent');
     const ip = req.ip;
 

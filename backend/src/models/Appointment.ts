@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { 
   Appointment, 
   CreateAppointmentRequest, 
@@ -31,11 +31,11 @@ export class AppointmentModel {
         notes: data.notes,
         hospitalPhone: data.hospitalPhone,
         hospitalAddress: data.hospitalAddress,
-        reminderSettings: data.reminderSettings || null,
+        reminderSettings: data.reminderSettings as any || null,
       },
     });
 
-    return appointment as Appointment;
+    return appointment as unknown as Appointment;
   }
 
   /**
@@ -52,7 +52,7 @@ export class AppointmentModel {
       },
     });
 
-    return appointment as Appointment | null;
+    return appointment as unknown as Appointment | null;
   }
 
   /**
@@ -67,6 +67,9 @@ export class AppointmentModel {
     
     if (data.appointmentDate) {
       updateData.appointmentDate = new Date(data.appointmentDate);
+    }
+    if (data.reminderSettings) {
+      updateData.reminderSettings = data.reminderSettings as any;
     }
 
     const appointment = await prisma.appointment.updateMany({
@@ -154,7 +157,7 @@ export class AppointmentModel {
     ]);
 
     return {
-      appointments: appointments as Appointment[],
+      appointments: appointments as unknown as Appointment[],
       total,
       page,
       limit,
@@ -186,7 +189,7 @@ export class AppointmentModel {
       },
     });
 
-    return appointments as Appointment[];
+    return appointments as unknown as Appointment[];
   }
 
   /**
@@ -274,6 +277,7 @@ export class AppointmentModel {
         department: item.department,
         count: item._count.id,
       })),
+      // The result of queryRaw is an array of objects, needs to be cast to any
       appointmentsByMonth: (appointmentsByMonth as any[]).map(item => ({
         month: item.month,
         count: item.count,
@@ -289,7 +293,7 @@ export class AppointmentModel {
     userId: string, 
     status: AppointmentStatus
   ): Promise<Appointment | null> {
-    const appointment = await prisma.appointment.updateMany({
+    const { count } = await prisma.appointment.updateMany({
       where: {
         id,
         userId,
@@ -297,7 +301,7 @@ export class AppointmentModel {
       data: { status },
     });
 
-    if (appointment.count === 0) {
+    if (count === 0) {
       return null;
     }
 
@@ -326,7 +330,7 @@ export class AppointmentModel {
       },
     });
 
-    return appointments as Appointment[];
+    return appointments as unknown as Appointment[];
   }
 
   /**
@@ -350,8 +354,11 @@ export class AppointmentModel {
       },
       orderBy: { appointmentDate: 'desc' },
       take: limit,
+      include: {
+        notifications: true,
+      },
     });
 
-    return appointments as Appointment[];
+    return appointments as unknown as Appointment[];
   }
 }

@@ -72,12 +72,14 @@ const PORT = process.env.PORT || 5000;
 
 // Security middleware
 app.use(securityHeaders);
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://your-domain.com'] 
-    : ['http://localhost:3000'],
-  credentials: true
-}));
+
+// Correctly configure CORS to use environment variables
+const corsOrigin = process.env.CORS_ORIGIN;
+const corsOptions = {
+    origin: corsOrigin ? corsOrigin.split(',') : 'http://localhost:3000',
+    credentials: true
+};
+app.use(cors(corsOptions));
 
 // Rate limiting
 app.use('/api', generalRateLimit);

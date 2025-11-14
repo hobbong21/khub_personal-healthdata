@@ -14,6 +14,24 @@ import {
 const prisma = new PrismaClient();
 
 export class AIService {
+
+  /**
+   * Get personalized health insights for a user.
+   * This method provides a high-level summary of risks and recommendations.
+   */
+  static async getPersonalizedInsights(userId: string): Promise<PredictionResult> {
+    try {
+      // For now, this method will act as an alias for getPersonalizedRecommendations
+      // to provide immediate insights based on existing logic.
+      // In the future, this could be expanded to have more distinct logic.
+      return await this.getPersonalizedRecommendations(userId);
+    } catch (error) {
+      console.error('Error getting personalized insights:', error);
+      // Re-throw the error to be handled by the controller
+      throw error;
+    }
+  }
+
   /**
    * Generate health risk prediction for a user
    */

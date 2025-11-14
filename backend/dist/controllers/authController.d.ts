@@ -1,0 +1,9 @@
+import { Request, Response } from 'express';
+export declare function register(req: Request, res: Response): Promise<void>;
+export declare function login(req: Request, res: Response): Promise<void>;
+export declare function logout(req: Request, res: Response): Promise<void>;
+export declare function getProfile(req: Request, res: Response): Promise<void>;
+export declare function refreshAuthToken(req: Request, res: Response): Promise<void>;
+export declare function validateToken(req: Request, res: Response): Promise<void>;
+export declare function changePassword(req: Request, res: Response): Promise<void>;
+//# sourceMappingURL=authController.d.ts.map

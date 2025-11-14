@@ -1,0 +1,1 @@
+{"version":3,"file":"compression.d.ts","sourceRoot":"","sources":["../../src/middleware/compression.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,OAAO,EAAE,QAAQ,EAAE,YAAY,EAAE,MAAM,SAAS,CAAC;AAG1D,eAAO,MAAM,qBAAqB,8IA6BhC,CAAC;AAGH,eAAO,MAAM,gBAAgB,GAAI,KAAK,OAAO,EAAE,KAAK,QAAQ,EAAE,MAAM,YAAY,SAU/E,CAAC;AAGF,eAAO,MAAM,mBAAmB,GAAI,KAAK,OAAO,EAAE,KAAK,QAAQ,EAAE,MAAM,YAAY,SAoBlF,CAAC"}
